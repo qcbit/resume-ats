@@ -8,7 +8,7 @@ install-tools:
 	brew install k9s
 	brew install helm
 	brew install uv
-	brew install python@3.11
+	brew install python@3.11.4
 
 # Variables
 KIND_CLUSTER_NAME := resume-dev-cluster
