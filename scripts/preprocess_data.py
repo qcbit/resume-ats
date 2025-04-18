@@ -4,25 +4,40 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from keybert import KeyBERT
 
 # Load the MiniLM model and tokenizer
 model_name = "sentence-transformers/all-MiniLM-L6-v2"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModel.from_pretrained(model_name)
 
-# Define custom stop words
-stop_words = {"the", "and", "is", "in", "to", "of", "a", "with", "for", "on", "at", "by"}
+# Initialize KeyBERT
+kw_model = KeyBERT(model_name)
 
 def preprocess_text(text):
     """Preprocess text by tokenizing and removing stop words."""
     tokens = tokenizer.tokenize(text.lower())
-    return " ".join([token for token in tokens if token.isalnum() and token not in stop_words])
+    return " ".join([token for token in tokens if token.isalnum()])
 
-def extract_keywords(text):
-    """Extract keywords from text."""
-    tokens = tokenizer.tokenize(text.lower())
-    keywords = [token for token in tokens if token.isalnum() and token not in stop_words]
-    return ", ".join(keywords[:5])  # Limit to top 5 keywords
+# Increase top_n to extract more keywords
+def extract_keywords(text, top_n=15): 
+    """Extract keywords from text using KeyBERT."""
+    # Ensure text is a string and not empty/NaN
+    if not isinstance(text, str) or text.strip() == "":
+        return ""
+    try:
+        keywords = kw_model.extract_keywords(
+            text,
+            keyphrase_ngram_range=(1, 3), # Consider adjusting this range
+            stop_words="english",
+            top_n=top_n
+        )
+        # Filter out low-relevance keywords if needed (e.g., based on score)
+        # keywords = [kw for kw in keywords if kw[1] > 0.3] # Example score threshold
+        return ", ".join([kw[0] for kw in keywords])
+    except Exception as e:
+        print(f"Error extracting keywords for text: {text[:100]}... Error: {e}")
+        return ""
 
 def get_embeddings_with_sliding_window(text, window_size=512, stride=256):
     """Generate embeddings for a given text using a sliding window approach."""
@@ -53,6 +68,12 @@ def calculate_match_score(resume_embedding, job_description_embedding):
     """Calculate the match score using cosine similarity."""
     return cosine_similarity([resume_embedding], [job_description_embedding])[0][0]
 
+def calculate_keyword_overlap(resume_kws, job_kws):
+    """Calculates Jaccard similarity between two sets of keywords."""
+    intersection = len(resume_kws.intersection(job_kws))
+    union = len(resume_kws.union(job_kws))
+    return intersection / union if union > 0 else 0.0
+
 # Load the dataset
 dataset = load_dataset("cnamuangtoun/resume-job-description-fit")
 
@@ -75,8 +96,15 @@ df.rename(columns={
     'job_description_text': 'job_description',
 }, inplace=True)
 
-# Extract keywords dynamically from job descriptions
-df['keywords'] = df['job_description'].apply(extract_keywords)
+# Extract keywords dynamically
+print("Extracting keywords from job descriptions...")
+df['job_keywords'] = df['job_description'].apply(lambda x: set(extract_keywords(x, top_n=10).split(', '))) # Store as set for efficiency
+print("Extracting keywords from resumes...")
+df['resume_keywords'] = df['resume'].apply(lambda x: set(extract_keywords(x, top_n=10).split(', '))) # Store as set
+
+# Remove empty strings resulting from split if necessary
+df['job_keywords'] = df['job_keywords'].apply(lambda s: s - {''})
+df['resume_keywords'] = df['resume_keywords'].apply(lambda s: s - {''})
 
 # Generate embeddings for resumes and job descriptions using sliding window
 df['resume_embedding'] = df['resume'].apply(lambda x: get_embeddings_with_sliding_window(x).tolist())
@@ -88,6 +116,13 @@ df['match_score'] = df.apply(
         np.array(row['resume_embedding']),
         np.array(row['job_description_embedding'])
     ),
+    axis=1
+)
+
+# Calculate keyword overlap score
+print("Calculating keyword overlap...")
+df['keyword_overlap_score'] = df.apply(
+    lambda row: calculate_keyword_overlap(row['resume_keywords'], row['job_keywords']),
     axis=1
 )
 
