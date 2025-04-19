@@ -17,27 +17,13 @@ kw_model = KeyBERT(model_name)
 def preprocess_text(text):
     """Preprocess text by tokenizing and removing stop words."""
     tokens = tokenizer.tokenize(text.lower())
-    return " ".join([token for token in tokens if token.isalnum()])
+    return " ".join([token for token in tokens if token.isalnum() and token not in stop_words])
 
-# Increase top_n to extract more keywords
-def extract_keywords(text, top_n=15): 
-    """Extract keywords from text using KeyBERT."""
-    # Ensure text is a string and not empty/NaN
-    if not isinstance(text, str) or text.strip() == "":
-        return ""
-    try:
-        keywords = kw_model.extract_keywords(
-            text,
-            keyphrase_ngram_range=(1, 3), # Consider adjusting this range
-            stop_words="english",
-            top_n=top_n
-        )
-        # Filter out low-relevance keywords if needed (e.g., based on score)
-        # keywords = [kw for kw in keywords if kw[1] > 0.3] # Example score threshold
-        return ", ".join([kw[0] for kw in keywords])
-    except Exception as e:
-        print(f"Error extracting keywords for text: {text[:100]}... Error: {e}")
-        return ""
+def extract_keywords(text, top_n=20):
+    """Extract keywords from text."""
+    tokens = tokenizer.tokenize(text.lower())
+    keywords = [token for token in tokens if token.isalnum() and token not in stop_words]
+    return ", ".join(keywords[:top_n])  # Limit to top N keywords
 
 def get_embeddings_with_sliding_window(text, window_size=512, stride=256):
     """Generate embeddings for a given text using a sliding window approach."""
@@ -96,11 +82,14 @@ df.rename(columns={
     'job_description_text': 'job_description',
 }, inplace=True)
 
+# Extract keywords dynamically from job descriptions
+df['keywords'] = df['job_description'].apply(extract_keywords)
+
 # Extract keywords dynamically
 print("Extracting keywords from job descriptions...")
-df['job_keywords'] = df['job_description'].apply(lambda x: set(extract_keywords(x, top_n=10).split(', '))) # Store as set for efficiency
+df['job_keywords'] = df['job_description'].apply(lambda x: set(extract_keywords(x).split(', '))) # Store as set for efficiency
 print("Extracting keywords from resumes...")
-df['resume_keywords'] = df['resume'].apply(lambda x: set(extract_keywords(x, top_n=10).split(', '))) # Store as set
+df['resume_keywords'] = df['resume'].apply(lambda x: set(extract_keywords(x).split(', '))) # Store as set
 
 # Remove empty strings resulting from split if necessary
 df['job_keywords'] = df['job_keywords'].apply(lambda s: s - {''})
@@ -118,6 +107,12 @@ df['match_score'] = df.apply(
     ),
     axis=1
 )
+
+def calculate_keyword_overlap(resume_kws, job_kws):
+    """Calculates Jaccard similarity between two sets of keywords."""
+    intersection = len(resume_kws.intersection(job_kws))
+    union = len(resume_kws.union(job_kws))
+    return intersection / union if union > 0 else 0.0
 
 # Calculate keyword overlap score
 print("Calculating keyword overlap...")
