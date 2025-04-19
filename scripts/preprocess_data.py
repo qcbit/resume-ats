@@ -18,11 +18,11 @@ def preprocess_text(text):
     tokens = tokenizer.tokenize(text.lower())
     return " ".join([token for token in tokens if token.isalnum() and token not in stop_words])
 
-def extract_keywords(text):
+def extract_keywords(text, top_n=20):
     """Extract keywords from text."""
     tokens = tokenizer.tokenize(text.lower())
     keywords = [token for token in tokens if token.isalnum() and token not in stop_words]
-    return ", ".join(keywords[:5])  # Limit to top 5 keywords
+    return ", ".join(keywords[:top_n])  # Limit to top N keywords
 
 def get_embeddings_with_sliding_window(text, window_size=512, stride=256):
     """Generate embeddings for a given text using a sliding window approach."""
@@ -78,6 +78,16 @@ df.rename(columns={
 # Extract keywords dynamically from job descriptions
 df['keywords'] = df['job_description'].apply(extract_keywords)
 
+# Extract keywords dynamically
+print("Extracting keywords from job descriptions...")
+df['job_keywords'] = df['job_description'].apply(lambda x: set(extract_keywords(x).split(', '))) # Store as set for efficiency
+print("Extracting keywords from resumes...")
+df['resume_keywords'] = df['resume'].apply(lambda x: set(extract_keywords(x).split(', '))) # Store as set
+
+# Remove empty strings resulting from split if necessary
+df['job_keywords'] = df['job_keywords'].apply(lambda s: s - {''})
+df['resume_keywords'] = df['resume_keywords'].apply(lambda s: s - {''})
+
 # Generate embeddings for resumes and job descriptions using sliding window
 df['resume_embedding'] = df['resume'].apply(lambda x: get_embeddings_with_sliding_window(x).tolist())
 df['job_description_embedding'] = df['job_description'].apply(lambda x: get_embeddings_with_sliding_window(x).tolist())
@@ -88,6 +98,19 @@ df['match_score'] = df.apply(
         np.array(row['resume_embedding']),
         np.array(row['job_description_embedding'])
     ),
+    axis=1
+)
+
+def calculate_keyword_overlap(resume_kws, job_kws):
+    """Calculates Jaccard similarity between two sets of keywords."""
+    intersection = len(resume_kws.intersection(job_kws))
+    union = len(resume_kws.union(job_kws))
+    return intersection / union if union > 0 else 0.0
+
+# Calculate keyword overlap score
+print("Calculating keyword overlap...")
+df['keyword_overlap_score'] = df.apply(
+    lambda row: calculate_keyword_overlap(row['resume_keywords'], row['job_keywords']),
     axis=1
 )
 
