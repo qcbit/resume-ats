@@ -4,14 +4,15 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from keybert import KeyBERT
 
 # Load the MiniLM model and tokenizer
 model_name = "sentence-transformers/all-MiniLM-L6-v2"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModel.from_pretrained(model_name)
 
-# Define custom stop words
-stop_words = {"the", "and", "is", "in", "to", "of", "a", "with", "for", "on", "at", "by"}
+# Initialize KeyBERT
+kw_model = KeyBERT(model_name)
 
 def preprocess_text(text):
     """Preprocess text by tokenizing and removing stop words."""
@@ -52,6 +53,12 @@ def get_embeddings_with_sliding_window(text, window_size=512, stride=256):
 def calculate_match_score(resume_embedding, job_description_embedding):
     """Calculate the match score using cosine similarity."""
     return cosine_similarity([resume_embedding], [job_description_embedding])[0][0]
+
+def calculate_keyword_overlap(resume_kws, job_kws):
+    """Calculates Jaccard similarity between two sets of keywords."""
+    intersection = len(resume_kws.intersection(job_kws))
+    union = len(resume_kws.union(job_kws))
+    return intersection / union if union > 0 else 0.0
 
 # Load the dataset
 dataset = load_dataset("cnamuangtoun/resume-job-description-fit")
