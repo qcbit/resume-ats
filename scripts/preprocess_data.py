@@ -4,15 +4,14 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from keybert import KeyBERT
 
 # Load the MiniLM model and tokenizer
 model_name = "sentence-transformers/all-MiniLM-L6-v2"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModel.from_pretrained(model_name)
 
-# Initialize KeyBERT
-kw_model = KeyBERT(model_name)
+# Define custom stop words
+stop_words = {"the", "and", "is", "in", "to", "of", "a", "with", "for", "on", "at", "by"}
 
 def preprocess_text(text):
     """Preprocess text by tokenizing and removing stop words."""
@@ -126,7 +125,7 @@ df['resume'] = df['resume'].str.replace(r'\s+', ' ', regex=True).str.strip()
 df['job_description'] = df['job_description'].str.replace(r'\s+', ' ', regex=True).str.strip()
 
 # Drop the embedding columns (optional, if you don't need them in the final dataset)
-df.drop(columns=['resume_embedding', 'job_description_embedding'], inplace=True)
+# df.drop(columns=['resume_embedding', 'job_description_embedding'], inplace=True)
 
 # Save the cleaned dataset
 df.to_csv("data/cleaned_dataset.csv", index=False)
