@@ -124,9 +124,6 @@ df['keyword_overlap_score'] = df.apply(
 df['resume'] = df['resume'].str.replace(r'\s+', ' ', regex=True).str.strip()
 df['job_description'] = df['job_description'].str.replace(r'\s+', ' ', regex=True).str.strip()
 
-# Drop the embedding columns (optional, if you don't need them in the final dataset)
-# df.drop(columns=['resume_embedding', 'job_description_embedding'], inplace=True)
-
 # Save the cleaned dataset
 df.to_csv("data/cleaned_dataset.csv", index=False)
 print("Cleaned dataset saved to data/cleaned_dataset.csv")
