@@ -4,13 +4,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
+import ast
 
 # Load the cleaned dataset
 df = pd.read_csv("data/cleaned_dataset.csv")  # Assuming it now has embeddings and keyword_overlap_score
 
 # Convert string representations of embeddings back to lists/arrays if needed
-df['resume_embedding'] = df['resume_embedding'].apply(eval)
-df['job_description_embedding'] = df['job_description_embedding'].apply(eval)
+df['resume_embedding'] = df['resume_embedding'].apply(ast.literal_eval)
+df['job_description_embedding'] = df['job_description_embedding'].apply(ast.literal_eval)
 
 # Split into training and testing sets
 train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
