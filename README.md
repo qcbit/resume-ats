@@ -12,4 +12,4 @@ The AI-powered Resume/ATS Scoring Assistant automates screening and scoring resu
 2. source .venv/bin/activate
 3. cd ..
 4. python3 scripts/keyword_extraction_model.py
-5. python 3 scripts/fine_tune_roberta.py
+5. python3 scripts/fine_tune_roberta.py
