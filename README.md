@@ -6,3 +6,10 @@ The AI-powered Resume/ATS Scoring Assistant automates screening and scoring resu
 1. Run **make install-brew**.
 2. Run **make install-tools**.
 3. To bring up the cluster, run **make kind-create**.
+
+# Training the models
+1. cd backend
+2. source .venv/bin/activate
+3. cd ..
+4. python3 scripts/keyword_extraction_model.py
+5. python 3 scripts/fine_tune_roberta.py
