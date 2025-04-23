@@ -11,7 +11,7 @@ install-tools:
 	brew install python@3.11.4
 
 # Variables
-KIND_CLUSTER_NAME := resume-dev-cluster
+KIND_CLUSTER_NAME := resume-ats-dev-cluster
 KIND_CONFIG_FILE := kind-config.yaml
 
 # Create a Kind cluster
