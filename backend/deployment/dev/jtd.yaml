@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-title-detector
+  labels:
+    app: job-title-detector
+spec:
+  replicas: 2 # Number of pods to run
+  selector:
+    matchLabels:
+      app: job-title-detector
+  template:
+    metadata:
+      labels:
+        app: job-title-detector
+    spec:
+      containers:
+      - name: job-title-detector
+        image: job-title-detector:latest
+        imagePullPolicy: Never # Use local image for development
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_ENV
+          value: "development"
+        - name: LOG_LEVEL
+          value: "INFO"
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-title-detector
+  labels:
+    app: job-title-detector
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5000
+  selector:
+    app: job-title-detector

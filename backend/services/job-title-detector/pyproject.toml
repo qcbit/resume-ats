@@ -1,0 +1,7 @@
+[project]
+name = "job-title-detector"
+version = "0.1.0"
+description = "Detects job title"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
