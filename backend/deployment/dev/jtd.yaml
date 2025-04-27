@@ -5,7 +5,7 @@ metadata:
   labels:
     app: job-title-detector
 spec:
-  replicas: 2 # Number of pods to run
+  replicas: 1 # Number of pods to run
   selector:
     matchLabels:
       app: job-title-detector
