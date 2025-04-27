@@ -83,12 +83,29 @@ deploy-ollama-service: delete-ollama-service build-ollama-service load-ollama-se
 	@echo "Deploying the ollama service to ${KIND_CLUSTER_NAME}"
 	kubectl apply -f deployment/dev/ollama.yaml
 
+build-match-scorer:
+	@echo "Building the docker image for the match scorer service"
+	docker build -t match-scorer:latest -f docker/MatchScorer.Dockerfile .
+
+load-match-scorer:
+	@echo "Loading the docker image for the match scorer service into kind"
+	kind load docker-image match-scorer:latest --name $(KIND_CLUSTER_NAME)
+
+delete-match-scorer:
+	@echo "Deleting the match scorer service from ${KIND_CLUSTER_NAME}"
+	kubectl delete -f deployment/dev/match-scorer.yaml || true
+
+deploy-match-scorer: delete-match-scorer build-match-scorer load-match-scorer
+	@echo "Deploying the match-scorer service to ${KIND_CLUSTER_NAME}"
+	kubectl apply -f deployment/dev/match-scorer.yaml
+
 delete-backend:
 	@echo "Deleting the backend services from ${KIND_CLUSTER_NAME}"
 	kubectl delete -f deployment/dev/jtd.yaml || true
 	kubectl delete -f deployment/dev/kwe.yaml || true
-	kubectl delete -f deployment/dev/ollama.yaml || true
+	kubectl delete -f deployment/dev/match-scorer.yaml || true
 
 deploy:
-	kubectl apply -f deployment/$(ENVIRONMENT)/ollama.yaml
+	kubectl apply -f deployment/$(ENVIRONMENT)/jtd.yaml
 	kubectl apply -f deployment/$(ENVIRONMENT)/kwe.yaml
+	kubectl apply -f deployment/$(ENVIRONMENT)/match-scorer.yaml

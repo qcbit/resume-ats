@@ -32,4 +32,5 @@ members = [
     "services/keywords-extractor-openai",
     "services/keywords-extractor-llm",
     "services/keywords-extractor-llm-quantized",
+    "services/match-scorer",
 ]
