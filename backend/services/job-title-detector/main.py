@@ -16,7 +16,7 @@ logger.info("Starting Job Title Detector Service...")
 
 # Load job titles from job_title_industry.json
 try:
-    with open("data/job_title_industry.json", "r") as f:
+    with open("../data/job_title_industry.json", "r") as f:
         job_title_to_industry = json.load(f)
     job_titles = list(job_title_to_industry.keys())
     logger.info("Loaded job titles successfully.")
@@ -81,6 +81,14 @@ def detect_job_title_endpoint():
     except Exception as e:
         logger.error(f"Error in API endpoint: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
+# Health check endpoint
+@app.route("/health", methods=["GET"])
+def health_check():
+    """
+    Health check endpoint to verify the service is running.
+    """
+    return jsonify({"status": "healthy"}), 200
 
 if __name__ == "__main__":
     # Parse command-line arguments
