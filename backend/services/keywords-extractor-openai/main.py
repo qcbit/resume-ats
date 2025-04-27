@@ -4,6 +4,7 @@ import json
 from loguru import logger
 import openai
 import os
+import ast
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -44,7 +45,8 @@ def extract_keywords_with_gpt4(job_description):
     # Parse the response to get the list of keywords
     content = response.choices[0].message.content
     try:
-        keywords = eval(content) if content.strip().startswith("[") else []
+        # Use ast.literal_eval for safety instead of eval
+        keywords = ast.literal_eval(content) if content.strip().startswith("[") else []
     except Exception:
         keywords = []
     return keywords
