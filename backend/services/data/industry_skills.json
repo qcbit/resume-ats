@@ -1,0 +1,168 @@
+{
+  "Business": [
+    "account management", "accounting", "accounts payable", "accounts receivable", "acquisition",
+    "analysis", "analytical skills", "asset management", "audit", "auditing", "benchmarking",
+    "budget", "budget management", "business analysis", "business continuity", "business development",
+    "business intelligence", "business planning", "business process", "business strategy",
+    "business systems", "case management", "change management", "client relationships",
+    "client services", "CMS", "coding", "commissioning", "complex projects", "consulting",
+    "content", "continuous improvement", "contract management", "conversion", "correspondence",
+    "counseling", "CPG", "CRM", "cross-functional team", "customer experience", "daily operations",
+    "data analysis", "data collection", "data management", "data quality", "digital marketing",
+    "digital media"
+  ],
+  "Finance": [
+    "account management", "accounting", "accounts payable", "accounts receivable", "acquisition",
+    "analysis", "analytical skills", "asset management", "audit", "auditing", "benchmarking",
+    "budget", "budget management", "business analysis", "business continuity", "business development",
+    "business intelligence", "business planning", "business process", "business strategy",
+    "business systems", "case management", "change management", "client relationships",
+    "client services", "CMS", "coding", "commissioning", "complex projects", "consulting",
+    "content", "continuous improvement", "contract management", "conversion", "correspondence",
+    "counseling", "CPG", "CRM", "cross-functional team", "customer experience", "daily operations",
+    "data analysis", "data collection", "data management", "data quality", "digital marketing",
+    "digital media"
+  ],
+  "Law": [
+    "case management", "client relationships", "client services", "compliance", "contract management",
+    "correspondence", "counseling", "legal research", "litigation", "negotiation", "regulatory compliance",
+    "risk management", "settlement", "trial preparation"
+  ],
+  "Customer Service": [
+    "beverage", "billing", "build relationships", "client relationships", "client service",
+    "consumers", "customer experience", "customer-facing", "customer requirements", "customer service",
+    "employee relations", "filing", "help desk", "hospitality", "hotel", "hotels", "human resource",
+    "human resources", "immigration", "in-store", "internship", "media relations", "office software",
+    "on-boarding", "outreach", "retail", "sales", "sales experience", "sales goals", "sales operations",
+    "staffing", "supervising", "supervisory experience", "support services", "talent acquisition",
+    "talent management", "travel", "travel arrangements", "vendor management", "warehouse", "workflows"
+  ],
+  "Retail": [
+    "beverage", "billing", "build relationships", "client relationships", "client service",
+    "consumers", "customer experience", "customer-facing", "customer requirements", "customer service",
+    "in-store", "outreach", "retail", "sales", "sales experience", "sales goals", "sales operations",
+    "staffing", "supervising", "supervisory experience", "support services", "vendor management",
+    "warehouse", "workflows"
+  ],
+  "Human Resources": [
+    "employee relations", "filing", "help desk", "human resource", "human resources", "immigration",
+    "internship", "media relations", "office software", "on-boarding", "talent acquisition",
+    "talent management", "staffing", "supervising", "supervisory experience"
+  ],
+  "Tourism": [
+    "beverage", "hospitality", "hotel", "hotels", "travel", "travel arrangements"
+  ],
+  "Education": [
+    "administrative support", "admissions", "biology", "chemistry", "coaching", "computer science",
+    "computer software", "counsel", "counseling", "fundraising", "German", "higher education",
+    "mathematics", "physics"
+  ],
+  "Health Care": [
+    "acute care", "admissions", "allergies", "anesthesia", "assessment", "care management",
+    "case management", "certified", "clinical", "clinical research", "coding", "compliance",
+    "diagnosis", "discharge planning", "documentation", "emergency", "EMR", "healthcare",
+    "ICU", "inpatient", "insurance", "medical", "medical records", "medication", "nursing",
+    "outpatient", "patient care", "pharmacy", "physician", "prescription", "primary care",
+    "rehabilitation", "treatment"
+  ],
+  "Medicine": [
+    "acute care", "admissions", "allergies", "anesthesia", "assessment", "care management",
+    "case management", "certified", "clinical", "clinical research", "coding", "compliance",
+    "diagnosis", "discharge planning", "documentation", "emergency", "EMR", "healthcare",
+    "ICU", "inpatient", "insurance", "medical", "medical records", "medication", "nursing",
+    "outpatient", "patient care", "pharmacy", "physician", "prescription", "primary care",
+    "rehabilitation", "treatment"
+  ],
+  "Information Technology": [
+    "API", "APIs", "automation", "BI", "coding", "CRM", "data analysis", "data management",
+    "database", "DevOps", "DNS", "ecommerce", "ETL", "HTML", "IBM", "InDesign", "information system",
+    "information systems", "JIRA", "KPI", "KPIs", "machine learning", "networking", "Oracle", "OS",
+    "Python", "quality assurance", "SaaS", "SAS", "SDLC", "SEO", "service delivery", "software development",
+    "software engineering", "SQL", "SQL server", "technical", "technical issues", "technical knowledge",
+    "technical skills", "technical support", "test cases", "test plans", "testing", "troubleshooting",
+    "UI", "Unix", "usability", "user experience", "UX", "VMware", "web services", "workflows",
+    "programming", "programming languages", "software architecture", "software design",
+    "software testing", "application development", "web development", "mobile development",
+    "cloud computing", "network security", "cybersecurity", "information security", "data analysis",
+    "data mining", "data visualization", "big data", "artificial intelligence", "machine learning",
+    "deep learning", "natural language processing", "computer vision", "robotics", "IoT",
+    "blockchain", "cryptography", "virtualization", "containers", "DevOps", "agile development",
+    "scrum", "Kanban", "CI/CD", "version control", "Git", "GitHub", "Bitbucket", "JIRA",
+    "Trello", "Asana", "Slack", "Zoom", "Microsoft Teams", "Google Workspace", "Office 365",
+    "AWS", "Azure", "Google Cloud", "IBM Cloud", "Oracle Cloud", "Salesforce", "SAP", "Dynamics 365",
+    "ServiceNow", "Tableau", "Power BI", "QlikView", "Looker", "Splunk", "ELK Stack",
+    "Hadoop", "Spark", "Kafka", "NoSQL", "MongoDB", "Cassandra", "Redis", "Elasticsearch",
+    "PostgreSQL", "MySQL", "SQLite", "Oracle Database", "Microsoft SQL Server", "MariaDB"
+  ],
+  "Computer Science": [
+    "API", "APIs", "automation", "BI", "coding", "CRM", "data analysis", "data management",
+    "database", "DevOps", "DNS", "ecommerce", "ETL", "HTML", "IBM", "InDesign", "information system",
+    "information systems", "JIRA", "KPI", "KPIs", "machine learning", "networking", "Oracle", "OS",
+    "Python", "quality assurance", "SaaS", "SAS", "SDLC", "SEO", "service delivery", "software development",
+    "software engineering", "SQL", "SQL server", "technical", "technical issues", "technical knowledge",
+    "technical skills", "technical support", "test cases", "test plans", "testing", "troubleshooting",
+    "UI", "Unix", "usability", "user experience", "UX", "VMware", "web services", "workflows", "data structures",
+    "algorithms", "programming", "programming languages", "software architecture", "software design",
+    "software testing", "application development", "web development", "mobile development",
+    "cloud computing", "network security", "cybersecurity", "information security", "data analysis",
+    "data mining", "data visualization", "big data", "artificial intelligence", "machine learning",
+    "deep learning", "natural language processing", "computer vision", "robotics", "IoT",
+    "blockchain", "cryptography", "virtualization", "containers", "DevOps", "agile development",
+    "scrum", "Kanban", "CI/CD", "version control", "Git", "GitHub", "Bitbucket", "JIRA",
+    "Trello", "Asana", "Slack", "Zoom", "Microsoft Teams", "Google Workspace", "Office 365",
+    "AWS", "Azure", "Google Cloud", "IBM Cloud", "Oracle Cloud", "Salesforce", "SAP",
+    "ServiceNow", "Tableau", "Power BI", "QlikView", "Looker", "Splunk", "ELK Stack",
+    "Hadoop", "Spark", "Kafka", "NoSQL", "MongoDB", "Cassandra", "Redis", "Elasticsearch",
+    "PostgreSQL", "MySQL", "SQLite", "Oracle Database", "Microsoft SQL Server", "MariaDB",
+    "Python", "Java", "C++", "JavaScript", "C#", "Ruby", "PHP", "Swift", "Kotlin", "R", "Go", "Rust",
+    "Dart", "TypeScript", "HTML", "CSS", "SQL", "NoSQL", "XML", "JSON", "YAML", "Markdown",
+    "GraphQL", "REST", "SOAP", "Microservices", "Serverless", "API Gateway", "Load Balancer",
+    "Reverse Proxy", "CDN", "DNS", "DHCP", "TCP/IP", "UDP", "HTTP", "HTTPS", "FTP", "SFTP",
+    "SSH", "Telnet", "SMTP", "IMAP", "POP3", "WebSocket", "WebRTC", "WebAssembly", "Progressive Web Apps",
+    "Single Page Applications", "Responsive Design", "Mobile First", "Cross Browser Compatibility",
+    "Accessibility", "SEO", "SEM", "PPC", "CPC", "CPM", "CTR", "CRO", "A/B Testing", "Multivariate Testing",
+    "User Testing", "Usability Testing", "User Research", "User Interviews", "Surveys", "Focus Groups",
+    "Card Sorting", "Tree Testing", "A/B Testing", "Multivariate Testing", "Heatmaps", "Session Recordings"
+  ],
+  "Manufacturing": [
+    "assembly", "asset management", "audit", "auditing", "automation", "aviation", "budget",
+    "budget management", "budgeting", "chemicals", "circuits", "construction", "cost reduction",
+    "cross-functional team", "distribution", "documentation", "documenting", "drafting", "drawings",
+    "driving record", "electrical", "electrical engineering", "electronics", "engineering",
+    "fabrication", "installation", "instructional design", "instrumentation", "inventory",
+    "inventory management", "ISO", "life cycle", "lifecycle", "manage projects", "management experience",
+    "mining", "operations", "operations management", "outsourcing", "performance improvement",
+    "process improvement", "process improvements", "product design", "product development",
+    "product knowledge", "program management", "programming", "protocols", "prototype", "quality assurance",
+    "real-time", "research", "resource management", "root cause", "routing", "SaaS", "SAS", "SCI",
+    "scripting", "scrum", "SDLC", "SEO", "service delivery", "software development"
+  ],
+  "Transportation": [
+    "aviation", "driving record", "logistics", "operations", "routing", "supply chain", "warehouse"
+  ],
+  "Marketing": [
+    "account management", "acquisition", "acquisitions", "administrative support", "Adobe",
+    "Adobe Creative Suite", "advertising", "affiliate", "agile", "algorithms", "alliances",
+    "analytical", "analytical skills", "analytics", "analyze data", "analyzing data", "API",
+    "APIs", "automation", "benchmark", "BI", "brand", "branding", "broadcast", "budgeting",
+    "build relationships", "business analysis", "business continuity", "business development",
+    "business intelligence", "business planning", "business process", "business strategy",
+    "business systems", "case management", "change management", "client relationships",
+    "client services", "CMS", "coding", "commissioning", "complex projects", "consulting",
+    "content", "continuous improvement", "contract management", "conversion", "correspondence",
+    "counseling", "CPG", "CRM", "cross-functional team", "customer experience", "daily operations",
+    "data analysis", "data collection", "data management", "data quality", "digital marketing",
+    "digital media"
+  ],
+  "Media": [
+    "advertising", "broadcast", "content", "digital marketing", "digital media", "media relations",
+    "public relations", "social media", "video production", "writing"
+  ],
+  "Publishing": [
+    "content", "editing", "journalism", "proofreading", "publishing", "writing"
+  ],
+  "Graphic Design": [
+    "Adobe", "Adobe Creative Suite", "branding", "content", "design", "graphic design",
+    "illustrator", "InDesign", "Photoshop", "UI", "UX", "visual design"
+  ]
+}

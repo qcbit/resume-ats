@@ -19,8 +19,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --no-dev
 
-COPY ./services/data /app/services/data 
-COPY ./services/job-title-detector /app/services/job-title-detector
+COPY services/keywords-extractor-openai /app/services/keywords-extractor
+COPY services/data /app/services/data
 
 # Then, add the rest of the project source code and install it
 # Installing separately from its dependencies allows optimal layer caching
@@ -36,4 +36,4 @@ ENTRYPOINT []
 
 # Run the FastAPI application by default
 # Use a shell to substitute the PORT environment variable
-CMD ["sh", "-c", "cd /app/services/job-title-detector;uv run /app/services/job-title-detector/main.py --port $PORT"]
+CMD ["sh", "-c", "cd /app/services/keywords-extractor; uv run /app/services/keywords-extractor/main.py --port $PORT"]

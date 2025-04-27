@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keywords-extractor-openai
+  labels:
+    app: keywords-extractor-openai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keywords-extractor-openai
+  template:
+    metadata:
+      labels:
+        app: keywords-extractor-openai
+    spec:
+      containers:
+      - name: keywords-extractor-openai
+        image: keywords-extractor-openai:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: openai-api-key
+              key: OPENAI_API_KEY
+        - name: PORT
+          value: "5000"
+        # Add volume mounts if you need to mount data files
+        # volumeMounts:
+        #   - name: data
+        #     mountPath: /app/data
+        # volumes:
+        #   - name: data
+        #     configMap: # or persistentVolumeClaim, etc.
+        #       name: your-data-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keywords-extractor-openai
+  labels:
+    app: keywords-extractor-openai
+spec:
+  selector:
+    app: keywords-extractor-openai
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: ClusterIP

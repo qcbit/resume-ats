@@ -1,0 +1,7 @@
+[project]
+name = "keywords-extractor-openai"
+version = "0.1.0"
+description = "Extract keywords that have a similar semantic meaning to the job title"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
