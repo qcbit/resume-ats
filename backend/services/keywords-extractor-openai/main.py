@@ -13,7 +13,7 @@ logger.add("keyword_extractor.log", rotation="10 MB", level="INFO", format="{tim
 
 # Set your OpenAI API key (set this as an environment variable for security)
 openai.api_key = os.getenv("OPENAI_API_KEY")
-logger.info("OpenAI API key set.", os.getenv("OPENAI_API_KEY"))
+logger.info("OpenAI API key has been successfully set.")
 
 # Load skills and job titles
 try:
