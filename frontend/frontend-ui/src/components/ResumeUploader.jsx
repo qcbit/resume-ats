@@ -8,14 +8,20 @@ function ResumeUploader({ onResumeUpload }) {
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     setFileName(file.name);
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target.result;
       setResumeContent(text);
       onResumeUpload(text);
+    };
+    reader.onerror = (e) => {
+      console.error('File reading error:', e);
+      setResumeContent('');
+      onResumeUpload('');
+      alert('Failed to read the file. Please try a different file or format.');
     };
     reader.readAsText(file);
   };
