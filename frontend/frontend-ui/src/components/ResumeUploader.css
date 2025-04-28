@@ -1,0 +1,67 @@
+.resume-uploader {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.resume-uploader h2 {
+  margin-bottom: 15px;
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+}
+
+.file-upload {
+  margin-bottom: 20px;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--light-gray);
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-bottom: 8px;
+}
+
+.file-label:hover {
+  background-color: var(--medium-gray);
+}
+
+.file-icon {
+  font-size: 1.2rem;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.file-help {
+  font-size: 0.8rem;
+  color: var(--dark-gray);
+}
+
+.text-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.text-input textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 4px;
+  resize: vertical;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.text-input textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+}

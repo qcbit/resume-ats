@@ -1,0 +1,18 @@
+.footer {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+  margin-top: auto;
+}
+
+.footer p {
+  margin: 5px 0;
+}
+
+.disclaimer {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  max-width: 600px;
+  margin: 10px auto 0;
+}
