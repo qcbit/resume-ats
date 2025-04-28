@@ -1,0 +1,32 @@
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestion-item {
+  display: flex;
+  margin-bottom: 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  border-left: 3px solid var(--accent-color);
+}
+
+.suggestion-icon {
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+.suggestion-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.no-suggestions {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  color: var(--dark-gray);
+  text-align: center;
+}
