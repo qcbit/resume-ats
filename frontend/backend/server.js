@@ -110,8 +110,8 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
     const jdMatchedSkillsStr = jdMatchedSkills.length
       ? jdMatchedSkills.join(' ')
       : '';
-    console.log('JD Matched Skills:', jdMatchedSkills);
-    console.log('Resume Matched Skills:', resumeMatchedSkills);
+    console.log('JD Matched Skills Str:', jdMatchedSkillsStr);
+    console.log('Resume Matched Skills Str:', resumeMatchedSkillsStr);
 
     console.log('JD Keywords:', jdKeywords);
     console.log('Resume Keywords:', resumeKeywords);
