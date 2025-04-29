@@ -14,6 +14,9 @@ logger.add("keyword_extractor.log", rotation="10 MB", level="INFO", format="{tim
 
 # Set your OpenAI API key (set this as an environment variable for security)
 openai.api_key = os.getenv("OPENAI_API_KEY")
+if not openai.api_key:
+    logger.error("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
+    raise ValueError("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
 logger.info("OpenAI API key has been successfully set.")
 
 # Load skills and job titles
@@ -39,7 +42,7 @@ def extract_keywords_with_gpt4(job_description):
             {"role": "system", "content": "You are a helpful assistant for extracting keywords from job descriptions."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=128,
+        max_tokens=900,
         temperature=0.2,
     )
     # Parse the response to get the list of keywords
@@ -73,6 +76,9 @@ def extract_keywords():
 
         job_description = data["job_description"]
         job_title = data["job_title"]
+        if not job_description or not job_title:
+            logger.warning("Empty 'job_description' or 'job_title' provided.")
+            return jsonify({"error": "Empty 'job_description' or 'job_title' provided"}), 400
 
         # Step 1: Get skills for the job title
         skills = industry_skills.get(job_titles.get(job_title, ""), [])
