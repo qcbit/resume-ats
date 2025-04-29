@@ -83,7 +83,9 @@ def sliding_window_preds(sentence1, sentence2, window_size=512, stride=384, clas
             "predicted_class": classes[int(avg_equiv > avg_not_equiv)]
         }
     else:
-        return get_preds(sentence1[:1000], sentence2, classes)  # fallback
+        truncated_tokens = tokenizer.encode(sentence1, add_special_tokens=False)[:window_size]
+        truncated_sentence1 = tokenizer.decode(truncated_tokens)
+        return get_preds(truncated_sentence1, sentence2, classes)  # fallback
 
 @app.route("/predict", methods=["POST"])
 def predict():
