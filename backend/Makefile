@@ -102,10 +102,7 @@ deploy-match-scorer: delete-match-scorer build-match-scorer load-match-scorer
 delete-backend:
 	@echo "Deleting the backend services from ${KIND_CLUSTER_NAME}"
 	kubectl delete -f deployment/dev/jtd.yaml || true
-	kubectl delete -f deployment/dev/kwe.yaml || true
+	kubectl delete -f deployment/dev/kwe-openai.yaml || true
 	kubectl delete -f deployment/dev/match-scorer.yaml || true
 
-deploy:
-	kubectl apply -f deployment/$(ENVIRONMENT)/jtd.yaml
-	kubectl apply -f deployment/$(ENVIRONMENT)/kwe.yaml
-	kubectl apply -f deployment/$(ENVIRONMENT)/match-scorer.yaml
+deploy: delete-backend deploy-jtd deploy-kwe-openai deploy-match-scorer

@@ -6,8 +6,25 @@ import SuggestionsList from './SuggestionsList';
 import KeywordMatch from './KeywordMatch';
 
 function AnalysisResults({ results }) {
-  const { overallScore, categories, suggestions, matchedKeywords, missingKeywords } = results;
+  if (!results) return null;
   
+  // Check if results has the expected structure or use defaults
+  const overallScore = results.score || 0;
+  const matchedKeywords = results.resumeKeywords || [];
+  const missingKeywords = results.jdKeywords?.filter(kw => 
+    !results.resumeKeywords?.includes(kw)) || [];
+  
+  // Create categories object if it doesn't exist
+  const categories = results.categories || {
+    skills: { score: 50, relevance: 25 },
+    experience: { score: 50, relevance: 25 },
+    education: { score: 50, relevance: 25 },
+    achievements: { score: 50, relevance: 25 }
+  };
+  
+  // Use feedback as suggestions or create default
+  const suggestions = results.feedback ? [results.feedback] : [];
+
   return (
     <div className="analysis-results">
       <h2>Analysis Results</h2>
