@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-service-config
+data:
+  config.yaml: |
+    port: 8000
+    ollama_url: "http://ollama:11434/api/generate"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-service
+  labels:
+    app: ollama-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-service
+  template:
+    metadata:
+      labels:
+        app: ollama-service
+    spec:
+      containers:
+      - name: ollama-service
+        image: ollama-service:latest
+        imagePullPolicy: IfNotPresent
+        command: ["python", "api.py", "--config", "/app/config/config.yaml"]
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: ollama-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+spec:
+  selector:
+    app: ollama-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

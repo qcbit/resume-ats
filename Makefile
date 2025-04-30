@@ -61,7 +61,7 @@ port-forward-ingress:
 
 deploy-backend-services:
 	@echo "Deploying backend services..."
-	$(MAKE) -C backend deploy
+	$(MAKE) -C backend deploy-backend
 
 deploy-frontend-services:
 	@echo "Deploying frontend services..."
