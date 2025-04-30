@@ -12,6 +12,10 @@ const upload = multer({ dest: 'uploads/' });
 app.use(cors());
 app.use(express.json());
 
+const JOB_TITLE_SERVICE_URL = process.env.JOB_TITLE_SERVICE_URL || 'http://localhost:5001/detect-job-title';
+const KEYWORDS_SERVICE_URL = process.env.KEYWORDS_SERVICE_URL || 'http://localhost:5002/extract-keywords';
+const PREDICT_SERVICE_URL = process.env.PREDICT_SERVICE_URL || 'http://localhost:5003/predict';
+
 // Helper: Extract text from file
 async function extractText(file) {
   if (file.mimetype === 'application/pdf') {
@@ -33,6 +37,9 @@ async function extractText(file) {
 // POST /analyze endpoint
 app.post('/analyze', upload.single('resume'), async (req, res) => {
   try {
+    console.log('req.file:', req.file);
+    console.log('req.body:', req.body);
+
     const file = req.file;
     const jobDescription = req.body.jobDescription;
     // Accept jobTitle optionally from the request
@@ -48,7 +55,7 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
     // 2.1 Job title detection (only if not provided by client)
     let job_title = jobTitleFromClient;
     if (!job_title) {
-      const jobTitleRes = await fetch('http://localhost:5003/detect-job-title', {
+      const jobTitleRes = await fetch(JOB_TITLE_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_description: jobDescription }),
@@ -59,12 +66,12 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
 
     // 2.2 Keyword extraction
     const [jdKeywordsRes, resumeKeywordsRes] = await Promise.all([
-      fetch('http://localhost:5001/extract-keywords', {
+      fetch(KEYWORDS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_description: jobDescription, job_title }),
       }),
-      fetch('http://localhost:5001/extract-keywords', {
+      fetch(KEYWORDS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_description: resumeText, job_title }),
@@ -125,7 +132,7 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
       sentence1: resumeText + (resumeMatchedSkillsStr ? ' ' + resumeMatchedSkillsStr : ''),
       sentence2: jobDescription + (jdMatchedSkillsStr ? ' ' + jdMatchedSkillsStr : ''),
     });
-    const matchRes = await fetch('http://localhost:5002/predict', {
+    const matchRes = await fetch(PREDICT_SERVICE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -148,6 +155,7 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
 
     // 4. Respond
     res.json({
+      skills: [],
       jobTitle: job_title,
       jdKeywords,
       resumeKeywords,
@@ -168,7 +176,17 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+// Parse --port argument from command line
+let cliPort = null;
+const portArgIndex = process.argv.indexOf('--port');
+if (portArgIndex !== -1 && process.argv[portArgIndex + 1]) {
+  const parsed = parseInt(process.argv[portArgIndex + 1], 10);
+  if (!isNaN(parsed)) {
+    cliPort = parsed;
+  }
+}
+
+const PORT = cliPort || process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
 });
