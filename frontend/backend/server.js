@@ -147,7 +147,8 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
       matchData = JSON.parse(matchText);
     } catch (err) {
       console.error('Failed to parse JSON from predict service');
-      console.error('Raw response:', matchText);
+      const sanitizedResponse = matchText.length > 100 ? matchText.substring(0, 100) + '...' : matchText;
+      console.error('Sanitized response:', sanitizedResponse);
       throw err;
     }
 
