@@ -1,16 +1,28 @@
+# --- Build Stage (React App) ---
 FROM node:23-alpine AS build
 
 WORKDIR /app
 
-# Accept API URL as a build argument, default to http://resume-backend:5000
-ARG VITE_REACT_APP_API_URL=http://resume-backend:5000
-ENV VITE_REACT_APP_API_URL=${VITE_REACT_APP_API_URL}
+# Copy package files first for better caching
+COPY package*.json ./
+RUN npm install
 
 COPY . .
-RUN npm install
+
+# Build the app
 RUN npm run build
 
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# --- Final Stage (Caddy Server) ---
+FROM caddy:2-alpine
+
+# Remove default Caddyfile from the image
+RUN rm -f /etc/caddy/Caddyfile
+
+# Copy your custom Caddyfile
+COPY Caddyfile /etc/caddy/Caddyfile
+
+# Copy built React app assets from the build stage
+COPY --from=build /app/dist /usr/share/caddy
+
+# Caddy automatically exposes port 80.
+# The default CMD in the caddy image runs Caddy with the config.

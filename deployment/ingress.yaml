@@ -3,24 +3,26 @@ kind: Ingress
 metadata:
   name: resume-ingress
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  # No annotations needed for this setup
 spec:
   rules:
   - host: localhost
     http:
       paths:
+      # API path
       - pathType: Prefix
-        path: /api/(.*)
+        path: /api
         backend:
           service:
             name: resume-backend
             port:
+              # CHANGE THIS to match the Service port
               number: 5000
+      # Frontend path
       - pathType: Prefix
         path: /
         backend:
           service:
             name: resume-frontend
             port:
-              number: 80
+              number: 80 # Keep this as 80 for the frontend Caddy service
