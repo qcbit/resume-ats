@@ -147,19 +147,25 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
       matchData = JSON.parse(matchText);
     } catch (err) {
       console.error('Failed to parse JSON from predict service');
+      const sanitizedResponse = matchText.length > 100 ? matchText.substring(0, 100) + '...' : matchText;
+      console.error('Sanitized response:', sanitizedResponse);
       throw err;
     }
 
-    // 3. Generate feedback (simple)
+    // Extract the analysis from the match data for richer feedback
+    const analysis = matchData.analysis || '';
+
+    // 3. Generate feedback (enhanced with LLM analysis)
     const score = Math.round((matchData.equivalent || 0) * 100);
 
-    // 4. Respond
+    // 4. Respond with enhanced data
     res.json({
       skills: [],
       jobTitle: job_title,
       jdKeywords,
       resumeKeywords,
       score,
+      analysis,
       feedback:
         score > 85
           ? 'Excellent match!'

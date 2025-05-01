@@ -1,0 +1,43 @@
+# k8s/ollama-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  labels:
+    app: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: ollama-service:latest
+        imagePullPolicy: Never # Use local image for development
+        ports:
+        - containerPort: 11434
+      #   volumeMounts:
+      #   - name: ollama-models
+      #     mountPath: /root/.ollama
+      # volumes:
+      # - name: ollama-models
+      #   emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  labels:
+    app: ollama
+spec:
+  selector:
+    app: ollama
+  ports:
+  - protocol: TCP
+    port: 11434
+    targetPort: 11434
