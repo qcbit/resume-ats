@@ -34,26 +34,24 @@ async function extractText(file) {
   }
 }
 
-// POST /analyze endpoint
-app.post('/analyze', upload.single('resume'), async (req, res) => {
+// POST /api/analyze endpoint
+app.post('/api/analyze', upload.single('resume'), async (req, res) => {
+  console.log("Received request for /api/analyze"); // Add log
+  const file = req.file;
+  const { jobDescription } = req.body;
+
+  if (!file || !jobDescription) {
+    console.error("Missing file or job description");
+    return res.status(400).json({ error: 'Missing resume file or job description' });
+  }
+
   try {
-    console.log('req.file:', req.file);
-    console.log('req.body:', req.body);
-
-    const file = req.file;
-    const jobDescription = req.body.jobDescription;
-    // Accept jobTitle optionally from the request
-    const jobTitleFromClient = req.body.jobTitle;
-
-    if (!file || !jobDescription) {
-      return res.status(400).json({ error: 'Missing resume or job description' });
-    }
-
-    // 1. Extract text from resume
+    console.log("Extracting text from:", file.originalname);
     const resumeText = await extractText(file);
+    console.log("Text extracted, length:", resumeText.length);
 
     // 2.1 Job title detection (only if not provided by client)
-    let job_title = jobTitleFromClient;
+    let job_title = req.body.jobTitle;
     if (!job_title) {
       const jobTitleRes = await fetch(JOB_TITLE_SERVICE_URL, {
         method: 'POST',
@@ -77,21 +75,6 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
         body: JSON.stringify({ job_description: resumeText, job_title }),
       }),
     ]);
-        // Example mock response for jdKeywordsRes
-    // const jdKeywordsRes = {
-    //   json: async () => ({
-    //     job_title: "Software Engineer",
-    //     extracted_keywords: ["Java", "Python", "C++"],
-    //     matched_skills: ["Java", "Python"]
-    //   })
-    // };
-    // const resumeKeywordsRes = {
-    //   json: async () => ({
-    //     job_title: "Software Engineer",
-    //     extracted_keywords: ["Java", "Python", "C++"],
-    //     matched_skills: ["Java", "Python"]
-    //   })
-    // };
     const jdKeywordsJson = await jdKeywordsRes.json();
     const resumeKeywordsJson = await resumeKeywordsRes.json();
 
@@ -176,9 +159,15 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
 
     // 5. Clean up uploaded file
     fs.unlinkSync(file.path);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Processing failed' });
+    console.log("Cleaned up file:", file.path);
+  } catch (error) {
+    console.error('Error processing /api/analyze:', error);
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const errorResponse = { error: 'Failed to analyze resume' };
+    if (isDevelopment) {
+      errorResponse.details = error.message;
+    }
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -193,6 +182,6 @@ if (portArgIndex !== -1 && process.argv[portArgIndex + 1]) {
 }
 
 const PORT = cliPort || process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Backend listening on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => { // Ensure listening on 0.0.0.0
+  console.log(`Backend server listening on port ${PORT}`);
 });
