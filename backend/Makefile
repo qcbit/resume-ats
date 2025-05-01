@@ -12,7 +12,7 @@ load-jtd:
 
 delete-jtd:
 	@echo "Deleting the job title detector service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/jtd.yaml || true
+	kubectl delete -f deployment/dev/jtd.yaml --ignore-not-found=true
 
 deploy-jtd: delete-jtd build-jtd load-jtd
 	@echo "Deploying the job title detector service to ${KIND_CLUSTER_NAME}"
@@ -32,7 +32,7 @@ load-kwe-openai:
 
 delete-kwe-openai:
 	@echo "Deleting the keywords extractor service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/kwe-openai.yaml || true
+	kubectl delete -f deployment/dev/kwe-openai.yaml --ignore-not-found=true
 
 deploy-kwe-openai: delete-kwe-openai build-kwe-openai load-kwe-openai
 	@echo "Deploying the keywords extractor to ${KIND_CLUSTER_NAME}"
@@ -50,7 +50,7 @@ load-kwe-llm-q:
 
 delete-kwe-llm-q:
 	@echo "Deleting the keywords extractor service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/kwe.yaml || true
+	kubectl delete -f deployment/dev/kwe.yaml --ignore-not-found=true
 
 deploy-kwe-llm-q: build-kwe-llm-q load-kwe-llm-q
 	@echo "Deploying the keywords extractor to ${KIND_CLUSTER_NAME}"
@@ -69,7 +69,7 @@ load-kwe-ollama:
 
 delete-kwe-ollama:
 	@echo "Deleting the keywords extractor service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/kwe.yaml || true
+	kubectl delete -f deployment/dev/kwe.yaml --ignore-not-found=true
 
 deploy-kwe-ollama: build-kwe-ollama load-kwe-ollama
 	@echo "Deploying the keywords extractor to ${KIND_CLUSTER_NAME}"
@@ -79,7 +79,7 @@ deploy-kwe-ollama: build-kwe-ollama load-kwe-ollama
 
 delete-ollama:
 	@echo "Deleting the Ollama model server from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/ollama.yaml || true
+	kubectl delete -f deployment/dev/ollama.yaml --ignore-not-found=true
 
 deploy-ollama:
 	@echo "Deploying the Ollama model server to ${KIND_CLUSTER_NAME}"
@@ -89,7 +89,7 @@ deploy-ollama:
 
 delete-ollama-service:
 	@echo "Deleting the ollama service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/ollama-service.yaml || true
+	kubectl delete -f deployment/dev/ollama-service.yaml --ignore-not-found=true
 
 build-ollama-service:
 	@echo "Building the docker image for the ollama service"
@@ -116,7 +116,7 @@ load-match-scorer:
 
 delete-match-scorer:
 	@echo "Deleting the match scorer service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/match-scorer.yaml || true
+	kubectl delete -f deployment/dev/match-scorer.yaml --ignore-not-found=true
 
 deploy-match-scorer: delete-match-scorer build-match-scorer load-match-scorer
 	@echo "Deploying the match-scorer service to ${KIND_CLUSTER_NAME}"
@@ -134,20 +134,34 @@ load-match-scorer-ollama:
 
 delete-match-scorer-ollama:
 	@echo "Deleting the match scorer service from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/match-scorer-ollama.yaml || true
+	kubectl delete -f deployment/dev/match-scorer-ollama.yaml --ignore-not-found=true
 
 deploy-match-scorer-ollama: delete-match-scorer-ollama build-match-scorer-ollama load-match-scorer-ollama
 	@echo "Deploying the match-scorer service to ${KIND_CLUSTER_NAME}"
 	kubectl apply -f deployment/dev/match-scorer-ollama.yaml
 
+######### MATCH SCORER WITH OPENAI #########
+
+build-match-scorer-openai:
+	@echo "Building the docker image for the match scorer service (OpenAI)"
+	docker build -t match-scorer-openai:latest -f docker/MatchScorerOpenAI.Dockerfile .
+
+load-match-scorer-openai:
+	@echo "Loading the docker image for the match scorer service (OpenAI) into kind"
+	kind load docker-image match-scorer-openai:latest --name $(KIND_CLUSTER_NAME)
+
+delete-match-scorer-openai:
+	@echo "Deleting the match scorer service (OpenAI) from ${KIND_CLUSTER_NAME}"
+	# Assuming you renamed the yaml file as suggested
+	kubectl delete -f deployment/dev/match-scorer-openai.yaml --ignore-not-found=true
+
+deploy-match-scorer-openai: delete-match-scorer-openai build-match-scorer-openai load-match-scorer-openai
+	@echo "Deploying the match-scorer service (OpenAI) to ${KIND_CLUSTER_NAME}"
+	# Then deploy the service/deployment
+	kubectl apply -f deployment/dev/match-scorer-openai.yaml
+
 ####### DEPLOYMENT #######
 
-delete-backend:
-	@echo "Deleting the backend services from ${KIND_CLUSTER_NAME}"
-	kubectl delete -f deployment/dev/jtd.yaml || true
-	kubectl delete -f deployment/dev/kwe-openai.yaml || true
-	kubectl delete -f deployment/dev/match-scorer.yaml || true
-	kubectl delete -f deployment/dev/ollama-service.yaml || true
-	delete-ollama
+delete-backend: delete-jtd delete-kwe-openai delete-match-scorer-openai
 
-deploy-backend: delete-backend deploy-jtd deploy-kwe-openai deploy-ollama deploy-ollama-service deploy-match-scorer-ollama
+deploy-backend: delete-backend deploy-jtd deploy-kwe-openai deploy-match-scorer-openai

@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from fuzzywuzzy import process
+from openai import OpenAI # Use the new client interface
 import json
 from loguru import logger
-import openai
 import os
 import ast
 
@@ -12,12 +12,16 @@ app = Flask(__name__)
 # Configure Loguru
 logger.add("keyword_extractor.log", rotation="10 MB", level="INFO", format="{time} - {level} - {message}")
 
-# Set your OpenAI API key (set this as an environment variable for security)
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if not openai.api_key:
-    logger.error("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
-    raise ValueError("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
-logger.info("OpenAI API key has been successfully set.")
+# --- Initialize OpenAI Client ---
+# client = OpenAI() will automatically use the OPENAI_API_KEY environment variable
+try:
+    client = OpenAI()
+    # Perform a simple test call to ensure the key is valid (optional but good)
+    client.models.list()
+    logger.info("OpenAI client initialized and API key validated.")
+except Exception as e:
+    logger.error(f"Failed to initialize OpenAI client or validate API key: {e}")
+    raise
 
 # Load skills and job titles
 try:
@@ -30,78 +34,71 @@ except Exception as e:
     logger.error(f"Failed to load skills or job titles: {e}")
     raise
 
-def extract_keywords_with_gpt4(job_description):
-    prompt = (
-        "Extract the most relevant keywords (skills, technologies, tools, and concepts) from the following job description. "
-        "Return them as a Python list of strings.\n\n"
-        f"Job Description:\n{job_description}\n\nKeywords:"
-    )
-    response = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant for extracting keywords from job descriptions."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=900,
-        temperature=0.2,
-    )
-    # Parse the response to get the list of keywords
-    content = response.choices[0].message.content
-    try:
-        # Use ast.literal_eval for safety instead of eval
-        keywords = ast.literal_eval(content) if content.strip().startswith("[") else []
-    except Exception:
-        keywords = []
-    return keywords
-
-def match_skills_with_keywords(extracted_keywords, skills, threshold=80):
-    matched_skills = []
-    if not skills:
-        return matched_skills
-    for keyword in extracted_keywords:
-        result = process.extractOne(keyword, skills)
-        if result:
-            match, score = result
-            if score >= threshold:
-                matched_skills.append((keyword, match, score))
-    return set([match for _, match, _ in matched_skills])
-
 @app.route("/extract-keywords", methods=["POST"])
 def extract_keywords():
+    data = request.get_json()
+    text_input = data.get("text")
+
+    if not text_input:
+        logger.warning("Missing 'text' in request.")
+        return jsonify({"error": "Missing 'text' field in request body"}), 400
+
+    # --- Updated Prompt for JSON Object Output ---
+    system_prompt = """
+    You are an expert ATS (Applicant Tracking System) keyword extractor.
+    Your task is to extract the top 10-15 most relevant technical skills, tools, programming languages, frameworks, and soft skills from the provided text.
+    Focus on keywords suitable for an Applicant Tracking System (ATS).
+
+    Return ONLY a JSON object (no introductory text, no markdown formatting) with a single key "keywords" which contains a list of the extracted keyword strings.
+    Example: {"keywords": ["Python", "React", "Project Management", "SQL", "AWS"]}
+    """
+    user_prompt = f"""
+    Extract keywords from the following text according to the system instructions:
+
+    TEXT:
+    ---
+    {text_input}
+    ---
+    """
     try:
-        data = request.get_json()
-        if "job_description" not in data or "job_title" not in data:
-            logger.warning("Missing 'job_description' or 'job_title' in request.")
-            return jsonify({"error": "Missing 'job_description' or 'job_title' in request"}), 400
+        logger.info(f"Sending request to OpenAI for keyword extraction (text length: {len(text_input)}).")
 
-        job_description = data["job_description"]
-        job_title = data["job_title"]
-        if not job_description or not job_title:
-            logger.warning("Empty 'job_description' or 'job_title' provided.")
-            return jsonify({"error": "Empty 'job_description' or 'job_title' provided"}), 400
+        # --- Replace placeholder with OpenAI API Call ---
+        response = client.chat.completions.create(
+            # Use a model that supports JSON mode
+            model="gpt-4o", # Or gpt-4-turbo, gpt-3.5-turbo-1106 etc.
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format={"type": "json_object"}, # Request JSON output
+            temperature=0.2 # Lower temperature for more deterministic output
+        )
+        logger.info("Received response from OpenAI.")
 
-        # Step 1: Get skills for the job title
-        skills = industry_skills.get(job_titles.get(job_title, ""), [])
-        if not skills:
-            logger.warning(f"No skills found for job title '{job_title}'.")
-            return jsonify({"error": f"No skills found for job title '{job_title}'"}), 404
+        content = response.choices[0].message.content
+        logger.debug(f"Raw OpenAI response content: {content}")
 
-        # Step 2: Extract keywords using GPT-4
-        extracted_keywords = extract_keywords_with_gpt4(job_description)
-        logger.info(f"Extracted Keywords: {extracted_keywords}")
+        # Parse the JSON response
+        try:
+            result_json = json.loads(content)
+            keywords = result_json.get("keywords", []) # Extract list from "keywords" key
+            if not isinstance(keywords, list):
+                 logger.warning(f"OpenAI returned 'keywords' but it wasn't a list: {keywords}")
+                 keywords = [] # Default to empty list if format is wrong
+        except json.JSONDecodeError as json_err:
+            logger.error(f"Failed to parse JSON response from OpenAI: {json_err}")
+            logger.error(f"Invalid JSON string: {content}")
+            keywords = [] # Default to empty list on parsing error
 
-        # Step 3: Match extracted keywords with skills
-        matched_skills = match_skills_with_keywords(extracted_keywords, skills)
-        logger.info(f"Matched Skills: {matched_skills}")
+        logger.info(f"Extracted keywords: {keywords}")
+        return jsonify({"keywords": keywords})
+        # --- End of OpenAI API Call ---
 
-        return jsonify({
-            "job_title": job_title,
-            "extracted_keywords": extracted_keywords,
-            "matched_skills": list(matched_skills)
-        })
     except Exception as e:
-        logger.error(f"Error in API endpoint: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        # Log the specific OpenAI error if available
+        logger.error(f"Error during OpenAI keyword extraction: {e}")
+        return jsonify({"error": f"Failed to extract keywords: {e}"}), 500
 
 @app.route("/health", methods=["GET"])
 def health_check():

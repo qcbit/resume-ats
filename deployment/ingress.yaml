@@ -3,7 +3,13 @@ kind: Ingress
 metadata:
   name: resume-ingress
   namespace: default
-  # No annotations needed for this setup
+  annotations:
+    # Increase the time Nginx waits for a response from the backend
+    # Value is in seconds. Default is often 60. Increase as needed.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "180"
+    # You might also consider increasing send/connect timeouts if needed
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "180"
+    # nginx.ingress.kubernetes.io/proxy-connect-timeout: "10" # Usually keep this lower
 spec:
   rules:
   - host: localhost
@@ -16,7 +22,6 @@ spec:
           service:
             name: resume-backend
             port:
-              # CHANGE THIS to match the Service port
               number: 5000
       # Frontend path
       - pathType: Prefix
@@ -25,4 +30,4 @@ spec:
           service:
             name: resume-frontend
             port:
-              number: 80 # Keep this as 80 for the frontend Caddy service
+              number: 80

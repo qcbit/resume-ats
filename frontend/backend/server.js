@@ -12,9 +12,11 @@ const upload = multer({ dest: 'uploads/' });
 app.use(cors());
 app.use(express.json());
 
-const JOB_TITLE_SERVICE_URL = process.env.JOB_TITLE_SERVICE_URL || 'http://localhost:5001/detect-job-title';
-const KEYWORDS_SERVICE_URL = process.env.KEYWORDS_SERVICE_URL || 'http://localhost:5002/extract-keywords';
-const PREDICT_SERVICE_URL = process.env.PREDICT_SERVICE_URL || 'http://localhost:5003/predict';
+// Ensure these point to the correct K8s service names and ports
+const JOB_TITLE_SERVICE_URL = process.env.JOB_TITLE_SERVICE_URL || 'http://job-title-detector:5000/detect-job-title';
+const KEYWORDS_SERVICE_URL = process.env.KEYWORDS_SERVICE_URL || 'http://keywords-extractor-openai:5000/extract-keywords';
+// Assuming the service name for the OpenAI scorer is 'match-scorer-openai'
+const PREDICT_SERVICE_URL = process.env.PREDICT_SERVICE_URL || 'http://match-scorer-openai:5000/predict';
 
 // Helper: Extract text from file
 async function extractText(file) {
@@ -36,7 +38,7 @@ async function extractText(file) {
 
 // POST /api/analyze endpoint
 app.post('/api/analyze', upload.single('resume'), async (req, res) => {
-  console.log("Received request for /api/analyze"); // Add log
+  console.log("Received request for /api/analyze");
   const file = req.file;
   const { jobDescription } = req.body;
 
@@ -45,129 +47,133 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
     return res.status(400).json({ error: 'Missing resume file or job description' });
   }
 
+  let analysisResult = {}; // To store results from different services
+
   try {
     console.log("Extracting text from:", file.originalname);
     const resumeText = await extractText(file);
     console.log("Text extracted, length:", resumeText.length);
 
-    // 2.1 Job title detection (only if not provided by client)
-    let job_title = req.body.jobTitle;
-    if (!job_title) {
-      const jobTitleRes = await fetch(JOB_TITLE_SERVICE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_description: jobDescription }),
-      });
-      const jobTitleData = await jobTitleRes.json();
-      job_title = jobTitleData.job_title;
-    }
+    // --- Call Microservices ---
+    // 1. Job title detection
+    console.log('Sending request to JOB_TITLE_SERVICE_URL:', JOB_TITLE_SERVICE_URL);
+    const jobTitleRes = await fetch(JOB_TITLE_SERVICE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_description: jobDescription }),
+    });
+    if (!jobTitleRes.ok) throw new Error(`Job title service failed: ${jobTitleRes.statusText}`);
+    const jobTitleData = await jobTitleRes.json();
+    analysisResult.jobTitle = jobTitleData.job_title;
+    console.log('Job Title received:', analysisResult.jobTitle);
 
-    // 2.2 Keyword extraction
+    // 2. Keyword extraction (Parallel)
+    console.log('Sending requests to KEYWORDS_SERVICE_URL:', KEYWORDS_SERVICE_URL);
     const [jdKeywordsRes, resumeKeywordsRes] = await Promise.all([
       fetch(KEYWORDS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_description: jobDescription, job_title }),
+        body: JSON.stringify({ text: jobDescription }), // Assuming KW service expects 'text'
       }),
       fetch(KEYWORDS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_description: resumeText, job_title }),
+        body: JSON.stringify({ text: resumeText }), // Assuming KW service expects 'text'
       }),
     ]);
+    if (!jdKeywordsRes.ok) throw new Error(`JD Keywords service failed: ${jdKeywordsRes.statusText}`);
+    if (!resumeKeywordsRes.ok) throw new Error(`Resume Keywords service failed: ${resumeKeywordsRes.statusText}`);
+
     const jdKeywordsJson = await jdKeywordsRes.json();
     const resumeKeywordsJson = await resumeKeywordsRes.json();
 
-    const jdKeywords = Array.isArray(jdKeywordsJson.extracted_keywords)
-      ? jdKeywordsJson.extracted_keywords
-      : [];
-    const resumeKeywords = Array.isArray(resumeKeywordsJson.extracted_keywords)
-      ? resumeKeywordsJson.extracted_keywords
-      : [];
+    analysisResult.jdKeywords = Array.isArray(jdKeywordsJson.keywords) ? jdKeywordsJson.keywords : [];
+    analysisResult.resumeKeywords = Array.isArray(resumeKeywordsJson.keywords) ? resumeKeywordsJson.keywords : [];
+    console.log('JD Keywords received:', analysisResult.jdKeywords);
+    console.log('Resume Keywords received:', analysisResult.resumeKeywords);
 
-    const jdMatchedSkills = Array.isArray(jdKeywordsJson.matched_skills)
-      ? jdKeywordsJson.matched_skills
-      : [];
-    const resumeMatchedSkills = Array.isArray(resumeKeywordsJson.matched_skills)
-      ? resumeKeywordsJson.matched_skills
-      : [];
-    console.log('JD Matched Skills:', jdMatchedSkills);
-    console.log('Resume Matched Skills:', resumeMatchedSkills);
-    // Defensive: fallback to empty string if keywords are empty
-    const resumeMatchedSkillsStr = resumeMatchedSkills.length
-      ? resumeMatchedSkills.join(' ')
-      : '';
-    const jdMatchedSkillsStr = jdMatchedSkills.length
-      ? jdMatchedSkills.join(' ')
-      : '';
-    console.log('JD Matched Skills Str:', jdMatchedSkillsStr);
-    console.log('Resume Matched Skills Str:', resumeMatchedSkillsStr);
+    // 3. Prediction/Scoring using match-scorer-openai
+    console.log('Sending request to PREDICT_SERVICE_URL:', PREDICT_SERVICE_URL);
+    const predictTimeoutMs = 180000; // 3 minutes timeout for OpenAI
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), predictTimeoutMs);
 
-    console.log('JD Keywords:', jdKeywords);
-    console.log('Resume Keywords:', resumeKeywords);
+    let predictionData = {}; // To store prediction results
 
-    // Defensive: fallback to empty string if keywords are empty
-    const resumeKeywordsStr = resumeKeywords.length ? resumeKeywords.join(' ') : '';
-    const jdKeywordsStr = jdKeywords.length ? jdKeywords.join(' ') : '';
-
-    // 2.3 Match scoring
-    console.log('Sending to predict:', {
-      sentence1: resumeText + (resumeMatchedSkillsStr ? ' ' + resumeMatchedSkillsStr : ''),
-      sentence2: jobDescription + (jdMatchedSkillsStr ? ' ' + jdMatchedSkillsStr : ''),
-    });
-    const matchRes = await fetch(PREDICT_SERVICE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sentence1: resumeText + (resumeMatchedSkillsStr ? ' ' + resumeMatchedSkillsStr : ''),
-        sentence2: jobDescription + (jdMatchedSkillsStr ? ' ' + jdMatchedSkillsStr : ''),
-      }),
-    });
-    const matchText = await matchRes.text();
-    console.log('Predict service response:', matchText);
-    let matchData;
     try {
-      matchData = JSON.parse(matchText);
-    } catch (err) {
-      console.error('Failed to parse JSON from predict service');
-      const sanitizedResponse = matchText.length > 100 ? matchText.substring(0, 100) + '...' : matchText;
-      console.error('Sanitized response:', sanitizedResponse);
-      throw err;
+      const predictRes = await fetch(PREDICT_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume_text: resumeText,
+          job_description: jobDescription,
+          // No longer sending skills/keywords here unless the scorer needs them
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId); // Clear timeout if fetch completes
+
+      if (!predictRes.ok) {
+        const errorBody = await predictRes.text();
+        console.error(`Prediction service failed with status ${predictRes.status}: ${errorBody}`);
+        throw new Error(`Prediction service failed: ${predictRes.statusText} - ${errorBody}`);
+      }
+
+      predictionData = await predictRes.json();
+      console.log('Prediction received:', predictionData);
+
+      // Merge prediction data into the main result object
+      analysisResult.score = predictionData.score; // Overall score (0-100)
+      analysisResult.categories = predictionData.categories; // Category scores/relevance
+      analysisResult.feedback = predictionData.feedback; // Feedback/Analysis text
+
+    } catch (error) {
+      clearTimeout(timeoutId); // Ensure timeout is cleared on error too
+      // Define a default categories structure
+      const defaultCategories = {
+        skills: { score: 0, relevance: 0 },
+        experience: { score: 0, relevance: 0 },
+        education: { score: 0, relevance: 0 },
+        achievements: { score: 0, relevance: 0 }
+      };
+
+      if (error.name === 'AbortError') {
+        console.error(`Prediction service timed out after ${predictTimeoutMs / 1000} seconds.`);
+        analysisResult.score = 0;
+        analysisResult.feedback = "Analysis timed out. Could not retrieve detailed scores.";
+        // Use the default structure
+        analysisResult.categories = defaultCategories;
+        analysisResult.error = 'Prediction service timed out.';
+      } else {
+        console.error('Error calling prediction service:', error);
+        analysisResult.score = 0;
+        analysisResult.feedback = "Failed to get analysis score due to an error.";
+        // Use the default structure
+        analysisResult.categories = defaultCategories;
+        analysisResult.error = `Prediction service failed: ${error.message}`;
+      }
     }
 
-    // Extract the analysis from the match data for richer feedback
-    const analysis = matchData.analysis || '';
+    // --- Respond with combined results ---
+    console.log("Sending final response:", analysisResult);
+    res.json(analysisResult);
 
-    // 3. Generate feedback (enhanced with LLM analysis)
-    const score = Math.round((matchData.equivalent || 0) * 100);
-
-    // 4. Respond with enhanced data
-    res.json({
-      skills: [],
-      jobTitle: job_title,
-      jdKeywords,
-      resumeKeywords,
-      score,
-      analysis,
-      feedback:
-        score > 85
-          ? 'Excellent match!'
-          : score > 70
-          ? 'Good match, but some improvements possible.'
-          : 'Consider improving your resume for this job.',
-    });
-
-    // 5. Clean up uploaded file
-    fs.unlinkSync(file.path);
-    console.log("Cleaned up file:", file.path);
   } catch (error) {
     console.error('Error processing /api/analyze:', error);
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const errorResponse = { error: 'Failed to analyze resume' };
-    if (isDevelopment) {
-      errorResponse.details = error.message;
+    res.status(500).json({
+        error: 'Failed to analyze resume',
+        details: error.message // Send back the specific error message
+    });
+  } finally {
+    // Clean up uploaded file regardless of success or failure
+    if (file && file.path) {
+      try {
+        fs.unlinkSync(file.path);
+        console.log("Cleaned up file:", file.path);
+      } catch (cleanupError) {
+        console.error("Error cleaning up file:", cleanupError);
+      }
     }
-    res.status(500).json(errorResponse);
   }
 });
 
