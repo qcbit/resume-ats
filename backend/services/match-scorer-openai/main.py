@@ -109,6 +109,9 @@ def get_openai_match_score(resume_text, job_description):
 
         # Add default relevance if needed by frontend (or adjust frontend later)
         for cat in required_categories:
+             # If the "relevance" field is missing, set a default value of 25.
+             # This default represents a neutral baseline and ensures consistency
+             # in the response structure for frontend processing.
              if "relevance" not in result_json["categories"][cat]:
                   result_json["categories"][cat]["relevance"] = 25 # Default relevance
 
