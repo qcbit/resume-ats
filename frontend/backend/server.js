@@ -64,6 +64,9 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
     });
     if (!jobTitleRes.ok) throw new Error(`Job title service failed: ${jobTitleRes.statusText}`);
     const jobTitleData = await jobTitleRes.json();
+    if (!jobTitleData || !jobTitleData.job_title) {
+      throw new Error('Job title property is missing in the response from JOB_TITLE_SERVICE_URL');
+    }
     analysisResult.jobTitle = jobTitleData.job_title;
     console.log('Job Title received:', analysisResult.jobTitle);
 
