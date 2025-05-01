@@ -162,7 +162,12 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
     console.log("Cleaned up file:", file.path);
   } catch (error) {
     console.error('Error processing /api/analyze:', error);
-    res.status(500).json({ error: 'Failed to analyze resume', details: error.message });
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const errorResponse = { error: 'Failed to analyze resume' };
+    if (isDevelopment) {
+      errorResponse.details = error.message;
+    }
+    res.status(500).json(errorResponse);
   }
 });
 
