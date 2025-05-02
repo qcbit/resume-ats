@@ -9,11 +9,9 @@ This project uses a microservices architecture with:
 - **Frontend UI** - React-based interface for resume uploads and results
 - **Backend Server** - Node.js/Express for file handling and service orchestration
 - **AI Services**:
-  - Job Title Detector - Extracts job titles from descriptions
-  - Keywords Extractor - Identifies relevant skills and keywords
-  - Match Scorer (Ollama) - Uses LLM to evaluate resume-job compatibility
-  - Ollama Service - API wrapper for the Ollama LLM
-  - Ollama Model Server - Runs the Llama 3 language model
+  - Job Title Detector - Extracts job titles from the job descriptions
+  - Keywords Extractor - Uses LLM to identify relevant skills and keywords
+  - Match Scorer - Uses LLM to evaluate resume-job compatibility
 
 ## Getting Started
 
