@@ -1,4 +1,4 @@
-# Match Scorer Service (OpenAI)
+# Analyzer Scorer Service (OpenAI)
 
 ## Overview
 
@@ -71,7 +71,7 @@ The service is configured using environment variables:
     ```
 3.  **Run the Flask App:**
     ```bash
-    cd match-scorer-openai
+    cd analyzer-scorer-openai
     uv run main.py [--port <port_number>] [--openai-model <model_name>]
     ```
 
@@ -80,14 +80,14 @@ The service is configured using environment variables:
 1.  **Build the Docker Image:** (Use the main backend Makefile)
     ```bash
     # From the backend directory
-    make build-match-scorer-openai
+    make build-analyzer-scorer-openai
     ```
 3.  **Deploy to Kubernetes:** (Use the main backend Makefile)
     ```bash
     # From the backend directory
-    make deploy-match-scorer-openai
+    make deploy-analyzer-scorer-openai
     ```
-    This uses the `backend/deployment/dev/match-scorer-openai.yaml` deployment file, which references the `openai-api-key`.
+    This uses the `backend/deployment/dev/analyzer-scorer-openai.yaml` deployment file, which references the `openai-api-key`.
 
 ## Notes
 
