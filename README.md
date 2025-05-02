@@ -54,7 +54,7 @@ kubectl create secret generic openai-api-key --from-literal=OPENAI_API_KEY=your-
 apiVersion: v1
 kind: Secret
 metadata:
-  name: openai-secret # Ensure this name matches what deployments expect
+  name: openai-api-key # Ensure this name matches what deployments expect
 type: Opaque
 stringData:
   OPENAI_API_KEY: "sk-..." # <-- Put your actual key here
