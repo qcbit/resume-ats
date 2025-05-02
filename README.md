@@ -48,7 +48,7 @@ kubectx kind-resume-ats-dev-cluster
 kubectl create secret generic openai-api-key --from-literal=OPENAI_API_KEY=your-actual-openai-api-key
 ```
 
-(Preferrably) Insert your OpenAI key in deployment/openai-secret.yaml
+(Preferably) Insert your OpenAI key in deployment/openai-secret.yaml
 
 ```# deployment/openai-secret.yaml
 apiVersion: v1
