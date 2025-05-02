@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resume-frontend
+  namespace: default
+  labels:
+    app: resume-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resume-frontend
+  template:
+    metadata:
+      labels:
+        app: resume-frontend
+    spec:
+      containers:
+      - name: resume-frontend
+        image: resume-frontend:latest
+        imagePullPolicy: Never # Use local image for development
+        ports:
+        - containerPort: 80 # Port the frontend container serves on (e.g., NGINX)
+        resources:
+          # Define resource limits and requests as needed
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resume-frontend
+  namespace: default
+  labels:
+    app: resume-frontend
+spec:
+  type: ClusterIP # Exposes the service internally, accessed via Ingress
+  selector:
+    app: resume-frontend # Selects pods with the label 'app=resume-frontend'
+  ports:
+  - protocol: TCP
+    port: 80 # Port the service will be available on within the cluster
+    targetPort: 80 # Port the container is listening on

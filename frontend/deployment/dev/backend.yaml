@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resume-backend
+  namespace: default
+  labels:
+    app: resume-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resume-backend
+  template:
+    metadata:
+      labels:
+        app: resume-backend
+    spec:
+      containers:
+      - name: resume-backend
+        image: resume-backend:latest
+        imagePullPolicy: Never # Use local image for development
+        ports:
+        - containerPort: 5000
+        env:
+        # Define URLs for the backend services this service needs to call
+        - name: JOB_TITLE_DETECTOR_URL
+          value: "http://job-title-detector:5000"
+        - name: KEYWORDS_EXTRACTOR_URL
+          value: "http://keywords-extractor-openai:5000" # Assuming this is the service name
+        - name: MATCH_SCORER_URL
+          value: "http://match-scorer-openai:5000"
+        # Add any other necessary environment variables
+        # - name: NODE_ENV
+        #   value: "production" # Or "development"
+        resources:
+          # Define resource limits and requests as needed
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resume-backend
+  namespace: default
+  labels:
+    app: resume-backend
+spec:
+  type: ClusterIP # Default type, exposes the service internally
+  selector:
+    app: resume-backend # Selects pods with the label 'app=resume-backend'
+  ports:
+  - protocol: TCP
+    port: 5000 # Port the service will be available on within the cluster
+    targetPort: 5000 # Port the container is listening on

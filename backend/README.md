@@ -10,9 +10,7 @@ The backend contains the following services:
 
 - **Job Title Detector**: Extracts job titles from job descriptions using embedding similarity and fuzzy matching
 - **Keywords Extractor (OpenAI)**: Extracts relevant skills and keywords from job descriptions using OpenAI models
-- **Match Scorer (Ollama)**: Evaluates the match between resumes and job descriptions using Llama 3 LLM
-- **Ollama Service**: API wrapper for the Ollama language model server
-- **Ollama Model Server**: Runs the actual Llama 3 language model
+- **Match Scorer (OpenAI)**: Evaluates the match between resumes and job descriptions using Llama 3 LLM
 
 ## Getting Started
 
@@ -42,7 +40,7 @@ See Makefile for other commands.
 Frontend UI → Backend Server → [Microservices]
                                 ├── Job Title Detector (5001)
                                 ├── Keywords Extractor (5002)
-                                └── Match Scorer (5003) → Ollama Service (8000) → Ollama (11434)
+                                └── Match Scorer (5003)
 ```
 
 ## Testing
@@ -54,8 +52,6 @@ Services are accessible within the cluster via their service names:
 - Job Title Detector: http://job-title-detector:5001
 - Keywords Extractor: http://keywords-extractor:5002
 - Match Scorer: http://match-scorer:5003
-- Ollama Service: http://ollama-service:8000
-- Ollama: http://ollama:11434
 
 External Access
 
@@ -74,11 +70,15 @@ Each service has its own configuration options. See the individual service READM
 
 - Job Title Detector
 - Keywords Extractor (OpenAI)
-- Match Scorer (Ollama)
-- Ollama Service
+- Match Scorer (OpenAI)
 
 ## Troubleshooting
 
 - Missing service connection: Check if all services are running with ```kubectl get pods```
 - API errors: Check logs with ```kubectl logs <pod-name>```
-- Slow responses: The Ollama LLM model can take time to load initially
+
+## Links
+
+[Frontend Documentation](../frontend/README.md)
+
+[Back to Main README](../README.md)

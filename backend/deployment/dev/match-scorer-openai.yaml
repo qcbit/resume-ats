@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: match-scorer-openai
+  labels:
+    app: match-scorer-openai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: match-scorer-openai
+  template:
+    metadata:
+      labels:
+        app: match-scorer-openai
+    spec:
+      containers:
+      - name: match-scorer-openai
+        image: match-scorer-openai:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: openai-api-key
+              key: OPENAI_API_KEY
+        - name: PORT
+          value: "5000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: match-scorer-openai
+  labels:
+    app: match-scorer-openai
+spec:
+  selector:
+    app: match-scorer-openai
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: ClusterIP

@@ -34,28 +34,33 @@ Prerequisites
 
 ```make kind-create```
 
-4. Deploy the ingress.
-
-```make deploy-ingress```
-
-Note: The ingress status will initially be stuck in Pending.
-
-5. Label the node for ingress
+4. Change context 
 
 ```sh
-# Get the node name
-kubectl get nodes
-
-# Add the ingress-ready label (replace with your node name)
-kubectl label node resume-ats-dev-cluster-control-plane ingress-ready=true
+kubectx kind-resume-ats-dev-cluster
 ```
 
-6. Create the OpenAI API key secret
+5. Use `k9s` to manage the cluster.
+
+6. Create the OpenAI API key secret. Note: This exposes your key to the console and history.
 
 ```sh
-kubectl create secret generic openai-api-key \
-  --from-literal=OPENAI_API_KEY=your-actual-openai-api-key
+kubectl create secret generic openai-api-key --from-literal=OPENAI_API_KEY=your-actual-openai-api-key
 ```
+
+(Preferably) Insert your OpenAI key in deployment/openai-secret.yaml
+
+```# deployment/openai-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openai-secret # Ensure this name matches what deployments expect
+type: Opaque
+stringData:
+  OPENAI_API_KEY: "sk-..." # <-- Put your actual key here
+```
+
+Then run `kubectl apply -f deployment/openai-secret.yaml`.
 
 7. Deploy backend microservices
 
@@ -65,18 +70,26 @@ kubectl create secret generic openai-api-key \
 
 ```make deploy-frontend-services```
 
-9.  Access the page <http://localhost:30211>.
+9. Deploy the ingress.
 
-If 404, the reapply the ingress manifest
+```make deploy-ingress```
 
-```sh
-kubectl apply -f deployment/ingress.yaml
-kubectl get ingress -n default
-```
+Note: The ingress status will initially be stuck in Pending.
 
-You should see:
+10. Label the node for ingress
 
 ```sh
-NAME             CLASS    HOSTS       ADDRESS     PORTS   AGE
-resume-ingress   <none>   localhost   localhost   80      5s
+# Get the node name
+kubectl get nodes
+
+# Add the ingress-ready label (replace with your node name)
+kubectl label node resume-ats-dev-cluster-control-plane ingress-ready=true
 ```
+
+11.  Access the page <http://localhost:30211>.
+
+## Links
+
+[Frontend Documentation](frontend/README.md)
+
+[Backend Services Documentation](backend/README.md)
