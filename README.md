@@ -1,35 +1,84 @@
-# resume-ats
+# Resume-ATS: AI-Powered Resume Scoring Assistant
+
 The AI-powered Resume/ATS Scoring Assistant automates screening and scoring resumes using large language models (LLMs). It evaluates resumes against job descriptions, offering feedback and recommendations to improve efficiency and accuracy in applicant tracking systems (ATS).
 
-# Getting Started
+## Architecture
 
-1. Run **make install-brew**.
-2. Run **make install-tools**.
-3. To bring up the cluster, run **make kind-create**.
-4. Run **make deploy-ingress**. The ingress status will be stuck in Pending.
-5. Run **kubectl get nodes**. Copy the control plane name, e.g. resume-ats-dev-cluster-control-plane.
-6. Add a label: **kubectl label node resume-ats-dev-cluster-control-plane ingress-ready=true**. After the label, the status should be Running.
-7. You need an OpenAI API Token <https://platform.openai.com>. Once obtained, run **kubectl create secret generic openai-api-key \
-  --from-literal=OPENAI_API_KEY=your-actual-openai-api-key**.
-8. Run **make deploy-backend-services**.
-9. Run **make deploy-frontend-services**.
-10. Access the page <http://localhost:30211>.
-Note: If 404, the reapply the ingress manifest: **kubectl apply -f deployment/ingress.yaml**
-then verify **kubectl get ingress -n default**
+This project uses a microservices architecture with:
 
-You should see something like
+- **Frontend UI** - React-based interface for resume uploads and results
+- **Backend Server** - Node.js/Express for file handling and service orchestration
+- **AI Services**:
+  - Job Title Detector - Extracts job titles from descriptions
+  - Keywords Extractor - Identifies relevant skills and keywords
+  - Match Scorer (Ollama) - Uses LLM to evaluate resume-job compatibility
+  - Ollama Service - API wrapper for the Ollama LLM
+  - Ollama Model Server - Runs the Llama 3 language model
+
+## Getting Started
+
+Prerequisites
+
+- macOS (for brew installation)
+- Docker Desktop
+- Internet connection
+- OpenAI API key (for keyword extraction)
+
+1. Install Homebrew
+
+```make install-brew```
+
+2. Install required tools
+
+```make install-tools```
+
+3. Create a KinD Kubernetes cluster.
+
+```make kind-create```
+
+4. Deploy the ingress.
+
+```make deploy-ingress```
+
+Note: The ingress status will initially be stuck in Pending.
+
+5. Label the node for ingress
+
+```sh
+# Get the node name
+kubectl get nodes
+
+# Add the ingress-ready label (replace with your node name)
+kubectl label node resume-ats-dev-cluster-control-plane ingress-ready=true
+```
+
+6. Create the OpenAI API key secret
+
+```sh
+kubectl create secret generic openai-api-key \
+  --from-literal=OPENAI_API_KEY=your-actual-openai-api-key
+```
+
+7. Deploy backend microservices
+
+```make deploy-backend-services```
+
+8.  Deploy frontend services
+
+```make deploy-frontend-services```
+
+9.  Access the page <http://localhost:30211>.
+
+If 404, the reapply the ingress manifest
+
+```sh
+kubectl apply -f deployment/ingress.yaml
+kubectl get ingress -n default
+```
+
+You should see:
 
 ```sh
 NAME             CLASS    HOSTS       ADDRESS     PORTS   AGE
 resume-ingress   <none>   localhost   localhost   80      5s
 ```
-
-Now try to access the page again.
-
-## Training the models
-
-1. cd backend
-2. source .venv/bin/activate
-3. cd ..
-4. python3 scripts/keyword_extraction_model.py
-5. python3 scripts/fine_tune_roberta.py
