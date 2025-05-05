@@ -1,9 +1,13 @@
 :80 {
-    root * /usr/share/caddy
-    file_server
-    try_files {path} /index.html # Handles SPA routing
-    log {
-        output stdout # Send access logs to stdout
-        format console # Use a simple console format
+    # Handle API requests first
+    handle /api/* {
+        reverse_proxy frontend-backend:5000
+    }
+
+    # Handle all other requests (static files, SPA fallback)
+    handle {
+        root * /usr/share/caddy
+        try_files {path} /index.html
+        file_server
     }
 }
