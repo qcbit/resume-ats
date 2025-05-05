@@ -3,25 +3,30 @@ import './ResumeUploader.css';
 
 function ResumeUploader({ onResumeUpload }) {
   const [fileName, setFileName] = useState('');
-  const [isDragging, setIsDragging] = useState(false); // State for drag feedback
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState(''); // State for inline error message
 
-  const handleFileChange = (file) => {
+  // Wrap handleFileChange in useCallback
+  const handleFileChange = useCallback((file) => {
+    setError(''); // Clear previous errors on new attempt
     if (file) {
-      // Basic validation for allowed types (can be more robust)
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
       if (allowedTypes.includes(file.type)) {
         setFileName(file.name);
-        onResumeUpload(file);
+        onResumeUpload(file); // Dependency
       } else {
-        alert('Unsupported file type. Please upload .txt, .pdf, .doc, or .docx');
-        setFileName(''); // Reset file name if invalid
+        // Set inline error message instead of alert
+        setError('Unsupported file type. Please upload .txt, .pdf, .doc, or .docx');
+        setFileName(''); // Reset file name
+        onResumeUpload(null); // Notify parent that upload is invalid/cleared
       }
     }
-  };
+  }, [onResumeUpload]); // Add onResumeUpload as a dependency
 
   const handleDragOver = useCallback((e) => {
-    e.preventDefault(); // Prevent default behavior (opening file)
+    e.preventDefault();
     setIsDragging(true);
+    setError(''); // Clear error when dragging over
   }, []);
 
   const handleDragLeave = useCallback((e) => {
@@ -29,20 +34,21 @@ function ResumeUploader({ onResumeUpload }) {
     setIsDragging(false);
   }, []);
 
+  // Update handleDrop dependencies
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
+    setError(''); // Clear error on drop attempt
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      handleFileChange(files[0]); // Handle the first dropped file
-      // Clear the dataTransfer buffer (important for some browsers)
+      handleFileChange(files[0]); // Call the memoized version
       if (e.dataTransfer.items) {
         e.dataTransfer.items.clear();
       } else {
         e.dataTransfer.clearData();
       }
     }
-  }, [onResumeUpload]); // Include onResumeUpload in dependency array if it could change
+  }, [handleFileChange]); // Correct dependency
 
   return (
     <div
@@ -53,7 +59,6 @@ function ResumeUploader({ onResumeUpload }) {
     >
       <h2>Upload Your Resume</h2>
       <div className="file-upload">
-        {/* Label now acts as the drop zone visually */}
         <label htmlFor="resume-file" className="file-label">
           <span className="file-icon">📄</span>
           <span>{fileName || (isDragging ? 'Drop file here' : 'Choose or drop a file')}</span>
@@ -62,12 +67,16 @@ function ResumeUploader({ onResumeUpload }) {
           type="file"
           id="resume-file"
           accept=".pdf,.doc,.docx,.txt"
-          style={{ display: 'none' }} // Keep hidden, label handles interaction
+          style={{ display: 'none' }}
           onChange={e => {
             const file = e.target.files[0];
-            handleFileChange(file);
+            // Clear input value to allow re-uploading the same file after an error
+            e.target.value = null;
+            handleFileChange(file); // Call the memoized version
           }}
         />
+        {/* Conditionally render the error message */}
+        {error && <p className="file-error">{error}</p>}
         <p className="file-help">Supported formats: .txt, .pdf, .doc, .docx</p>
       </div>
     </div>

@@ -78,3 +78,10 @@ input[type="file"] {
   cursor: grabbing;
   border-color: #007bff;
 }
+
+.file-error {
+  color: #dc3545; /* Bootstrap's danger color for errors */
+  font-size: 0.9em;
+  margin-top: 5px;
+  margin-bottom: 0; /* Adjust spacing as needed */
+}
