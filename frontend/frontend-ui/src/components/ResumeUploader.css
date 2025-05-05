@@ -20,11 +20,13 @@
   align-items: center;
   gap: 10px;
   background-color: var(--light-gray);
-  padding: 10px 15px;
-  border-radius: 4px;
+  padding: 20px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   margin-bottom: 8px;
+  border: 2px dashed #ccc;
+  justify-content: center;
 }
 
 .file-label:hover {
@@ -33,6 +35,7 @@
 
 .file-icon {
   font-size: 1.2rem;
+  margin-right: 10px;
 }
 
 input[type="file"] {
@@ -64,4 +67,14 @@ input[type="file"] {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+}
+
+.resume-uploader.dragging {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.resume-uploader.dragging .file-label {
+  cursor: grabbing;
+  border-color: #007bff;
 }
