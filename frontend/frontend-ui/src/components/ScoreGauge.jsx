@@ -10,7 +10,7 @@ function ScoreGauge({ score }) {
     scoreColor = '#ffc107'; // yellow for medium scores
   }
   
-  // Calculate rotation for gauge needle
+  // Calculate rotation for gauge needle: rotates from 0 degrees (0% score) to 180 degrees (100% score)
   const rotation = (score / 100) * 180;
   
   return (
