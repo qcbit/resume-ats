@@ -11,7 +11,7 @@ function ScoreGauge({ score }) {
   }
   
   // Calculate rotation for gauge needle
-  const rotation = (score / 100) * 180 - 90;
+  const rotation = (score / 100) * 180;
   
   return (
     <div className="score-gauge">
