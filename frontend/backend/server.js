@@ -15,7 +15,6 @@ app.use(express.json());
 // Ensure these point to the correct K8s service names and ports
 const JOB_TITLE_SERVICE_URL = process.env.JOB_TITLE_SERVICE_URL || 'http://job-title-detector:5000/detect-job-title';
 const KEYWORDS_SERVICE_URL = process.env.KEYWORDS_SERVICE_URL || 'http://keywords-extractor-openai:5000/extract-keywords';
-// Assuming the service name for the OpenAI scorer is 'match-scorer-openai'
 const PREDICT_SERVICE_URL = process.env.PREDICT_SERVICE_URL || 'http://match-scorer-openai:5000/predict';
 
 // Helper: Extract text from file
@@ -82,15 +81,12 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
       // Removed resume keyword extraction
     ]);
     if (!jdKeywordsRes.ok) throw new Error(`JD Keywords service failed: ${jdKeywordsRes.statusText}`);
-    // if (!resumeKeywordsRes.ok) throw new Error(`Resume Keywords service failed: ${resumeKeywordsRes.statusText}`);
 
     const jdKeywordsJson = await jdKeywordsRes.json();
-    // const resumeKeywordsJson = await resumeKeywordsRes.json();
 
     analysisResult.jdKeywords = Array.isArray(jdKeywordsJson.keywords) ? jdKeywordsJson.keywords : [];
     analysisResult.resumeKeywords = []; // Set to empty array as resume keywords are no longer fetched
     console.log('JD Keywords received:', analysisResult.jdKeywords);
-    // console.log('Resume Keywords received:', analysisResult.resumeKeywords);
 
     // 3. Prediction/Scoring using match-scorer-openai
     console.log('Sending request to PREDICT_SERVICE_URL:', PREDICT_SERVICE_URL);
