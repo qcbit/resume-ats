@@ -67,4 +67,4 @@ The job title detector helps categorize job descriptions, enabling more accurate
 
 [Frontend Documentation](../../../frontend/README.md)
 
-[Backend Services Documentation](../../backend/README.md)
+[Backend Services Documentation](../../README.md)
