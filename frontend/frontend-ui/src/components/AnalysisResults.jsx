@@ -7,67 +7,80 @@ import KeywordMatch from './KeywordMatch';
 
 function AnalysisResults({ results }) {
   if (!results) return null;
-  
-  // Check if results has the expected structure or use defaults
+
+  // results.jdKeywords: Array of keywords extracted from the job description
+  // results.resumeText: The full text content of the resume
+
+  const jdKeywordsList = results.jdKeywords || [];
+  const resumeText = results.resumeText || ""; // Get the full resume text
+
+  // --- Correct Calculation ---
+  // Matched: Keywords from jdKeywordsList found in resumeText
+  const matchedKeywords = jdKeywordsList.filter(jdKw =>
+    resumeText.toLowerCase().includes(jdKw.toLowerCase()) // Case-insensitive check in resume text
+  );
+
+  // Missing: Keywords from jdKeywordsList NOT found in resumeText
+  const missingKeywords = jdKeywordsList.filter(jdKw =>
+    !resumeText.toLowerCase().includes(jdKw.toLowerCase()) // Case-insensitive check in resume text
+  );
+  // --- End Correct Calculation ---
+
+  // Check if results has the expected structure or use defaults for other parts
   const overallScore = results.score || 0;
-  const matchedKeywords = results.resumeKeywords || [];
-  const missingKeywords = results.jdKeywords?.filter(kw => 
-    !results.resumeKeywords?.includes(kw)) || [];
-  
-  // Create categories object if it doesn't exist
   const categories = results.categories || {
-    skills: { score: 50, relevance: 25 },
-    experience: { score: 50, relevance: 25 },
-    education: { score: 50, relevance: 25 },
-    achievements: { score: 50, relevance: 25 }
+    skills: { score: 0, relevance: 25 },
+    experience: { score: 0, relevance: 25 },
+    education: { score: 0, relevance: 25 },
+    achievements: { score: 0, relevance: 25 }
   };
-  
-  // Use feedback as suggestions or create default
-  const suggestions = results.feedback ? [results.feedback] : [];
+  const suggestions = results.feedback ? [results.feedback] : ["Review missing keywords and tailor your resume."]; // Default suggestion
 
   return (
     <div className="analysis-results">
       <h2>Analysis Results</h2>
-      
+
       <div className="overall-score">
         <h3>Overall Match</h3>
         <ScoreGauge score={overallScore} />
       </div>
-      
+
       <div className="category-scores">
-        <h3>Category Breakdown</h3>
+        {/* ... CategoryScore components ... */}
+         <h3>Category Breakdown</h3>
         <div className="categories-grid">
-          <CategoryScore 
-            title="Skills" 
-            score={categories.skills.score} 
-            relevance={categories.skills.relevance} 
+          <CategoryScore
+            title="Skills"
+            score={categories.skills?.score || 0} // Add safe access
+            relevance={categories.skills?.relevance || 0}
           />
-          <CategoryScore 
-            title="Experience" 
-            score={categories.experience.score} 
-            relevance={categories.experience.relevance} 
+          <CategoryScore
+            title="Experience"
+            score={categories.experience?.score || 0}
+            relevance={categories.experience?.relevance || 0}
           />
-          <CategoryScore 
-            title="Education" 
-            score={categories.education.score} 
-            relevance={categories.education.relevance} 
+          <CategoryScore
+            title="Education"
+            score={categories.education?.score || 0}
+            relevance={categories.education?.relevance || 0}
           />
-          <CategoryScore 
-            title="Achievements" 
-            score={categories.achievements.score} 
-            relevance={categories.achievements.relevance} 
+          <CategoryScore
+            title="Achievements"
+            score={categories.achievements?.score || 0}
+            relevance={categories.achievements?.relevance || 0}
           />
         </div>
       </div>
-      
+
       <div className="keyword-analysis">
         <h3>Keyword Analysis</h3>
-        <KeywordMatch 
-          matchedKeywords={matchedKeywords} 
-          missingKeywords={missingKeywords} 
+        {/* Pass the correctly calculated lists */}
+        <KeywordMatch
+          matchedKeywords={matchedKeywords}
+          missingKeywords={missingKeywords}
         />
       </div>
-      
+
       <div className="improvement-suggestions">
         <h3>Improvement Suggestions</h3>
         <SuggestionsList suggestions={suggestions} />
