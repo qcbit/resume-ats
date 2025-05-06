@@ -93,3 +93,9 @@ The service is configured using environment variables:
 
 *   Ensure the selected `OPENAI_MODEL` supports the `response_format={"type": "json_object"}` parameter required by this service.
 *   The service expects the `OPENAI_API_KEY` environment variable to be set; it will fail to start otherwise.
+
+## Links
+
+[Frontend Documentation](../../../frontend/README.md)
+
+[Backend Services Documentation](../../README.md)

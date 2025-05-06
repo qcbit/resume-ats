@@ -85,3 +85,9 @@ curl -X POST http://127.0.0.1:5000/extract-keywords \
 ## Deployment
 
 See Makefile
+
+## Links
+
+[Frontend Documentation](../../../frontend/README.md)
+
+[Backend Services Documentation](../../README.md)
