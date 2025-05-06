@@ -53,6 +53,7 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
     console.log("Extracting text from:", file.originalname);
     const resumeText = await extractText(file);
     console.log("Text extracted, length:", resumeText.length);
+    analysisResult.resumeText = resumeText; // Add resumeText to the results
 
     // --- Call Microservices ---
     // 1. Job title detection
@@ -72,28 +73,24 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
 
     // 2. Keyword extraction (Parallel)
     console.log('Sending requests to KEYWORDS_SERVICE_URL:', KEYWORDS_SERVICE_URL);
-    const [jdKeywordsRes, resumeKeywordsRes] = await Promise.all([
+    const [jdKeywordsRes] = await Promise.all([
       fetch(KEYWORDS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: jobDescription }), // Assuming KW service expects 'text'
       }),
-      fetch(KEYWORDS_SERVICE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: resumeText }), // Assuming KW service expects 'text'
-      }),
+      // Removed resume keyword extraction
     ]);
     if (!jdKeywordsRes.ok) throw new Error(`JD Keywords service failed: ${jdKeywordsRes.statusText}`);
-    if (!resumeKeywordsRes.ok) throw new Error(`Resume Keywords service failed: ${resumeKeywordsRes.statusText}`);
+    // if (!resumeKeywordsRes.ok) throw new Error(`Resume Keywords service failed: ${resumeKeywordsRes.statusText}`);
 
     const jdKeywordsJson = await jdKeywordsRes.json();
-    const resumeKeywordsJson = await resumeKeywordsRes.json();
+    // const resumeKeywordsJson = await resumeKeywordsRes.json();
 
     analysisResult.jdKeywords = Array.isArray(jdKeywordsJson.keywords) ? jdKeywordsJson.keywords : [];
-    analysisResult.resumeKeywords = Array.isArray(resumeKeywordsJson.keywords) ? resumeKeywordsJson.keywords : [];
+    analysisResult.resumeKeywords = []; // Set to empty array as resume keywords are no longer fetched
     console.log('JD Keywords received:', analysisResult.jdKeywords);
-    console.log('Resume Keywords received:', analysisResult.resumeKeywords);
+    // console.log('Resume Keywords received:', analysisResult.resumeKeywords);
 
     // 3. Prediction/Scoring using match-scorer-openai
     console.log('Sending request to PREDICT_SERVICE_URL:', PREDICT_SERVICE_URL);
