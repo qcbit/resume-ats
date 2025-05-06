@@ -49,9 +49,9 @@ Accessing Services
 
 Services are accessible within the cluster via their service names:
 
-- Job Title Detector: http://job-title-detector:5001
-- Keywords Extractor: http://keywords-extractor:5002
-- Match Scorer: http://match-scorer:5003
+- Job Title Detector: http://job-title-detector:5000
+- Keywords Extractor: http://keywords-extractor:5000
+- Match Scorer: http://match-scorer:5000
 
 External Access
 
@@ -68,9 +68,9 @@ kubectl port-forward service/match-scorer 5003:5000
 
 Each service has its own configuration options. See the individual service READMEs for detailed configuration instructions:
 
-- Job Title Detector
-- Keywords Extractor (OpenAI)
-- Match Scorer (OpenAI)
+- [Job Title Detector](./services/job-title-detector/README.md)
+- [Keywords Extractor (OpenAI)](./services/keywords-extractor-openai/README.md)
+- [Match Scorer (OpenAI)](./services/match-scorer-openai/README.md)
 
 ## Troubleshooting
 

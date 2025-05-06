@@ -62,3 +62,9 @@ curl -X POST http://127.0.0.1:5000/detect-job-title \
 See Makefile.
 
 The job title detector helps categorize job descriptions, enabling more accurate matching and analysis.
+
+## Links
+
+[Frontend Documentation](../../../frontend/README.md)
+
+[Backend Services Documentation](../../README.md)
