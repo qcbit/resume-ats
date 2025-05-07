@@ -66,3 +66,11 @@ deploy-backend-services:
 deploy-frontend-services:
 	@echo "Deploying frontend services..."
 	$(MAKE) -C frontend deploy
+
+deploy-database:
+	@echo "Deploying database..."
+	kubectl apply -f deployment/postgres.yaml
+
+delete-database:
+	@echo "Deleting database..."
+	kubectl delete -f deployment/postgres.yaml
