@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: default
+type: Opaque
+stringData:
+  # Use the same credentials as in your .env file for consistency
+  POSTGRES_USER: "resume_user"
+  POSTGRES_PASSWORD: "password here" # Replace with your actual password
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: default
+data:
+  POSTGRES_DB: "resume_ats_db"
+  init-vector.sql: |
+    -- Enable the pgvector extension
+    CREATE EXTENSION IF NOT EXISTS vector;
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce # Suitable for a single database pod
+  resources:
+    requests:
+      storage: 1Gi # Adjust storage size as needed
+  # For KinD, the default storage class usually works.
+  # storageClassName: standard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+  namespace: default
+  labels:
+    app: postgres-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-db
+  template:
+    metadata:
+      labels:
+        app: postgres-db
+    spec:
+      containers:
+      - name: postgres-db
+        image: pgvector/pgvector:pg16 # Use the pre-built image
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        # Mount the persistent volume for data
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        # Mount the init script from the ConfigMap
+        - name: postgres-initdb
+          mountPath: /docker-entrypoint-initdb.d
+        # Add readiness and liveness probes
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      # Define the persistent volume
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      # Define the volume from the ConfigMap for the init script
+      - name: postgres-initdb
+        configMap:
+          name: postgres-config
+          items:
+            - key: init-vector.sql
+              path: init-vector.sql # The filename inside the container's initdb.d directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db # Service name used by other pods to connect
+  namespace: default
+  labels:
+    app: postgres-db
+spec:
+  type: ClusterIP # Expose internally within the cluster
+  selector:
+    app: postgres-db # Selects the pod(s) managed by the Deployment
+  ports:
+  - protocol: TCP
+    port: 5432       # Port the service listens on
+    targetPort: 5432 # Port the container listens on
