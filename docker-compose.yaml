@@ -1,0 +1,87 @@
+services:
+  frontend-ui:
+    restart: always # Restart policy for the frontend service
+    build:
+      context: ./frontend/frontend-ui # Context is the frontend directory
+      dockerfile: ../docker/frontend-ui.Dockerfile # Path to Dockerfile relative to context
+    ports:
+      - "80:80" # Expose Caddy's port 80 on host port 8080
+    depends_on: 
+      - frontend-backend # No direct dependency on DB
+
+  frontend-backend:
+    restart: always # Restart policy for the backend service
+    build:
+      context: ./frontend/backend # Context is the frontend/backend directory
+      dockerfile: ../docker/backend.Dockerfile # Path relative to context
+    environment:
+      # Use service names for inter-container communication
+      JOB_TITLE_DETECTOR_URL: "http://job-title-detector:5000"
+      KEYWORDS_EXTRACTOR_URL: "http://keywords-extractor-openai:5000"
+      MATCH_SCORER_URL: "http://match-scorer-openai:5000"
+      # Add Database connection details from .env
+      # DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}"
+      # NODE_ENV: development # Optional: Set Node environment
+    ports: # Only expose if you need direct access for testing
+      - "5001:5000"
+    depends_on:
+      - job-title-detector
+      - keywords-extractor-openai
+      - match-scorer-openai
+      # - postgres-db # Add dependency on the database
+
+  job-title-detector:
+    restart: on-failure # Restart policy for the job title detector service
+    build:
+      context: ./backend
+      dockerfile: ./docker/JTDetector.Dockerfile # Path to Dockerfile relative to context
+    ports: # Only expose if you need direct access for testing
+      - "5002:5000"
+
+  keywords-extractor-openai:
+    restart: on-failure # Restart policy for the job title detector service
+    build:
+      context: ./backend
+      dockerfile: ./docker/KWExtractorOpenAI.Dockerfile # Path to Dockerfile relative to context
+    environment:
+      # Pass the API key from a .env file in the root directory
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Add DATABASE_URL if needed
+    ports: # Only expose if you need direct access for testing
+      - "5003:5000"
+
+  match-scorer-openai:
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: ./docker/MatchScorerOpenAI.Dockerfile # Path to Dockerfile relative to context
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Add DATABASE_URL if needed
+    ports: # Only expose if you need direct access for testing
+      - "5004:5000"
+
+  
+  # --- Add PostgreSQL Service ---
+  # postgres-db:
+  #   image: pgvector/pgvector:pg16 # Use pgvector image for PostgreSQL 16
+  #   container_name: postgres-db
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data # Persist data
+  #     - ./database/initdb:/docker-entrypoint-initdb.d # Run init scripts
+  #   ports:
+  #     - "5432:5432" # Expose port 5432 for potential external access/debugging
+  #   restart: always
+  #   healthcheck: # Optional: Check if DB is ready
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# Define the named volume for data persistence
+# volumes:
+#   postgres_data:
