@@ -63,6 +63,34 @@ CREATE TABLE users (
     CONSTRAINT unique_social_login UNIQUE (social_provider, social_id)
 );
 
+-- Cover Letters Table
+CREATE TABLE cover_letters (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL,
+    cover_letter_text TEXT,
+    version_name VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Job Applications Table
+CREATE TABLE job_applications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_title VARCHAR(255) NOT NULL,
+    company_name VARCHAR(255) NOT NULL,
+    application_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL, -- 'applied', 'interview', 'offer', 'rejected'
+    response_date DATE,
+    source TEXT, -- LinkedIn URL, job board link, email, etc.
+    resume_id INTEGER REFERENCES resumes(id),
+    cover_letter_id INTEGER REFERENCES cover_letters(id),
+    analysis_id INTEGER REFERENCES analysis_history(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 
 
 
