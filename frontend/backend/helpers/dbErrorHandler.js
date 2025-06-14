@@ -7,7 +7,7 @@ const getErrorMessage = (err) => {
         message = getUniqueErrorMessage(err);
         break;
       default:
-        message = 'Something went wrong';
+        message = 'Something went wrong: '+err.code+ ' - ' + err.message;
     }
   } else {
     for (let errName in err.errors) {
@@ -29,4 +29,9 @@ const getUniqueErrorMessage = (err) => {
     output = 'Unique field already exists';
   }
   return output;
+};
+
+export default {
+  getErrorMessage,
+  getUniqueErrorMessage
 };

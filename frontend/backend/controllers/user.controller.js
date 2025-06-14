@@ -1,6 +1,6 @@
 import User from '../models/user.model.js';
-import extend from 'lodash/extend';
-import errorHandler from './error.controller';
+import extend from 'lodash/extend.js';
+import errorHandler from '../helpers/dbErrorHandler.js';
 
 // Create a new user
 const create = async (req, res) => {
@@ -8,7 +8,7 @@ const create = async (req, res) => {
   try {
     await user.save();
     return res.status(200).json({
-      message: "Successfully singed up!"
+      message: "Successfully signed up!"
     })
   } catch (err) {
     return res.status(400).json({

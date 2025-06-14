@@ -9,15 +9,14 @@ import path from 'path';
 import fetch from 'node-fetch';
 
 mongoose.Promise = global.Promise;
-mongoose.connect(config.mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useCreateIndex: true,
-});
 
-mongoose.connection.on('error', (err) => {
-  throw new Error(`Unable to connect to database: ${config.mongoUri}`);
-});
+try {
+  await mongoose.connect(config.mongoUri);
+  console.log('Successfully connected to MongoDB');
+} catch (error) {
+  console.error('MongoDB connection error:', error);
+  process.exit(1);
+}
 const upload = multer({ dest: 'uploads/' });
 
 // Ensure these point to the correct K8s service names and ports
