@@ -75,6 +75,18 @@ delete-database:
 	@echo "Deleting database..."
 	kubectl delete -f deployment/postgres.yaml
 
+.PHONY: deploy-mongodb
+deploy-mongodb:
+	@echo "Deploying MongoDB..."
+	kubectl apply -f deployment/mongodbcommunity.mongodb.com_mongodbcommunity.yaml
+	kubectl apply -f deployment/mongodb-instance.yaml
+
+.PHONY: delete-mongodb
+delete-mongodb:
+	@echo "Deleting MongoDB..."
+	kubectl delete -f deployment/mongodb-instance.yaml
+	kubectl delete -f deployment/mongodbcommunity.mongodb.com_mongodbcommunity.yaml
+
 .PHONY: port-forward-mongodb:
 port-forward-mongodb:
 	@echo "Port forwarding MongoDB service to localhost:27017"

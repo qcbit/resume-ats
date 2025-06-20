@@ -1,0 +1,124 @@
+services:
+
+########## FRONTEND SERVICES ##########
+
+  frontend-ui:
+    build:
+      context: ./frontend
+      dockerfile: ./frontend/docker/frontend-ui.Dockerfile
+    restart: always # Restart policy for the frontend service
+    ports:
+      - "80:80" # Expose Caddy's port 80 on host port 8080
+    depends_on:
+      - frontend-backend # No direct dependency on DB
+
+  frontend-backend:
+    build:
+      context: ./frontend/backend
+      dockerfile: ./frontend/docker/backend.Dockerfile
+    restart: always # Restart policy for the backend service
+    environment:
+      # Use service names for inter-container communication
+      JOB_TITLE_DETECTOR_URL: "http://job-title-detector:5000"
+      KEYWORDS_EXTRACTOR_URL: "http://keywords-extractor-openai:5000"
+      MATCH_SCORER_URL: "http://match-scorer-openai:5000"
+      # Add Database connection details from .env
+      # DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}"
+      # NODE_ENV: development # Optional: Set Node environment
+    # ports: # Only expose if you need direct access for testing
+    #   - "5000:5000"
+    depends_on:
+      - job-title-detector
+      - keywords-extractor-openai
+      - match-scorer-openai
+      # - postgres-db # Add dependency on the database
+
+########## BACKEND SERVICES ##########
+
+  job-title-detector:
+    build:
+      context: ./backend/services/job-title-detector
+      dockerfile: ./backend/docker/JTDetector.Dockerfile
+    restart: on-failure # Restart policy for the job title detector service
+    # ports: # Only expose if you need direct access for testing
+    #   - "5001:5000"
+
+  keywords-extractor-openai:
+    build:
+      context: ./backend/services/keywords-extractor-openai
+      dockerfile: ./backend/docker/KWExtractorOpenAI.Dockerfile
+    restart: on-failure # Restart policy for the job title detector service
+    env_file:
+      - .env # Load environment variables from .env file
+    environment:
+      # Pass the API key from a .env file in the root directory
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Add DATABASE_URL if needed
+    # ports: # Only expose if you need direct access for testing
+    #   - "5002:5000"
+
+  match-scorer-openai:
+    build:
+      context: ./backend/services/match-scorer-openai
+      dockerfile: ./backend/docker/MatchScorerOpenAI.Dockerfile
+    restart: always
+    env_file:
+      - .env # Load environment variables from .env file
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Add DATABASE_URL if needed
+    # ports: # Only expose if you need direct access for testing
+    #   - "5003:5000"
+
+########## DATABASE SERVICES ##########  
+  # --- Add PostgreSQL Service ---
+  # postgres-db:
+  #   image: pgvector/pgvector:pg16 # Use pgvector image for PostgreSQL 16
+  #   container_name: postgres-db
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data # Persist data
+  #     - ./database/initdb:/docker-entrypoint-initdb.d # Run init scripts
+  #   ports:
+  #     - "5432:5432" # Expose port 5432 for potential external access/debugging
+  #   restart: always
+  #   healthcheck: # Optional: Check if DB is ready
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo-db
+    env_file:
+      - .env # Load environment variables from .env file
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} # Root username from .env
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} # Root password from .env
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}           # Initial database name from .env
+    ports:
+      - 27017:27017
+    volumes:
+      - ./frontend/database/mongodb/initdb/:/docker-entrypoint-initdb.d/ # Run init scripts on startup
+      - mongodata:/data/db
+      - mongolog:/var/log/mongodb
+
+############## DATA PERSISTENCE ##############
+
+volumes:
+  mongodata:
+    driver: local
+  mongolog:
+    driver: local
+
+  # Uncomment if you want to use PostgreSQL
+  # postgres_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: /path/to/local/postgres_data
+#   postgres_data:

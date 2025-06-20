@@ -15,6 +15,10 @@ This project uses a microservices architecture with:
 
 ## Getting Started
 
+There are different ways to get up and running:
+
+### Using KinD
+
 Prerequisites
 
 - macOS (for brew installation)
@@ -88,8 +92,41 @@ kubectl label node resume-ats-dev-cluster-control-plane ingress-ready=true
 
 11.  Access the page <http://localhost:30211>.
 
+### Using Docker Compose
+
+1. ```cd resume-ats```
+
+2. Create a ***.env*** file with the following example content but change username, password, and database name to whatever you like or leave it:
+
+```sh
+# MongoDB Credentials
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=admin123
+MONGO_INITDB_DATABASE=mongodb
+MONGO_USER=mongouser
+MONGO_PASSWORD=mongo123
+```
+
+3. Run the following command to start the stack:
+
+```docker compose -f ./docker-compose-development.yaml up```
+
+(Optional) Build the docker images and replace the image names and run:
+
+```docker compose -f ./docker-compose-using-images.yaml up```
+
+2. Access the page <http://localhost:30211>.
+
 ## Links
 
 [Frontend Documentation](frontend/README.md)
 
 [Backend Services Documentation](backend/README.md)
+
+## Reference
+
+- [MongoDB](https://github.com/docker-library/docs/tree/master/mongo#initializing-a-fresh-instance)
+
+## Troubleshooting
+
+[MongoDB](docs/troubleshooting.md)
