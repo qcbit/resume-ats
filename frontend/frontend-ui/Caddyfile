@@ -1,12 +1,12 @@
 :80 {
     # Handle API requests first
     handle /api/* {
-        reverse_proxy frontend-backend:5000
+        reverse_proxy resume-backend:5000
     }
 
     # Handle all other requests (static files, SPA fallback)
     handle {
-        root * /usr/share/caddy
+    root * /usr/share/caddy
         try_files {path} /index.html
         file_server
     }
