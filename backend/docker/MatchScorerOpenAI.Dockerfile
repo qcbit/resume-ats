@@ -1,5 +1,19 @@
 # Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+FROM python:3.12-slim-bookworm
+
+# The installer requires curl (and certificates) to download the release archive
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+
+# Run the installer then remove it
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/root/.local/bin/:$PATH"
 
 ARG PORT=5000
 ENV PORT=${PORT:-5000}
@@ -23,7 +37,7 @@ COPY services/match-scorer-openai /app/services/match-scorer
 
 # Then, add the rest of the project source code and install it
 # Installing separately from its dependencies allows optimal layer caching
-ADD pyproject.toml uv.lock /app/
+COPY pyproject.toml uv.lock /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
