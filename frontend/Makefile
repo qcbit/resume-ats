@@ -23,6 +23,7 @@ delete-frontend:
 deploy-frontend:
 	@echo "Deploying frontend..."
 	kubectl apply -f $(FRONTEND_YAML)
+	kubectl apply -f deployment/dev/frontend-ingress.yaml
 
 # Variables
 BACKEND_IMAGE_NAME := resume-backend
