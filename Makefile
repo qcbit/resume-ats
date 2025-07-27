@@ -84,10 +84,10 @@ deploy-mongodb:
 .PHONY: delete-mongodb
 delete-mongodb:
 	@echo "Deleting MongoDB..."
-	kubectl delete -f deployment/mongodb-instance.yaml
 	kubectl delete -f deployment/mongodbcommunity.mongodb.com_mongodbcommunity.yaml
+	kubectl delete -f deployment/mongodb-instance.yaml
 
-.PHONY: port-forward-mongodb:
+.PHONY: port-forward-mongodb
 port-forward-mongodb:
 	@echo "Port forwarding MongoDB service to localhost:27017"
 	kubectl port-forward svc/mongodb-replica-set-svc 27017:27017

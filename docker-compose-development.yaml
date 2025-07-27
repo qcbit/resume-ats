@@ -4,8 +4,8 @@ services:
 
   frontend-ui:
     build:
-      context: ./frontend
-      dockerfile: ./frontend/docker/frontend-ui.Dockerfile
+      context: ./frontend/frontend-ui
+      dockerfile: ../docker/frontend-ui.Dockerfile
     restart: always # Restart policy for the frontend service
     ports:
       - "80:80" # Expose Caddy's port 80 on host port 8080
@@ -15,38 +15,42 @@ services:
   frontend-backend:
     build:
       context: ./frontend/backend
-      dockerfile: ./frontend/docker/backend.Dockerfile
+      dockerfile: ../docker/backend.Dockerfile
     restart: always # Restart policy for the backend service
+    env_file:
+      - .env
     environment:
       # Use service names for inter-container communication
+      DATABASE_URL: "mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo-db:27017/${MONGO_INITDB_DATABASE}?authSource=${MONGO_INITDB_DATABASE}"
       JOB_TITLE_DETECTOR_URL: "http://job-title-detector:5000"
       KEYWORDS_EXTRACTOR_URL: "http://keywords-extractor-openai:5000"
       MATCH_SCORER_URL: "http://match-scorer-openai:5000"
       # Add Database connection details from .env
       # DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}"
       # NODE_ENV: development # Optional: Set Node environment
-    # ports: # Only expose if you need direct access for testing
-    #   - "5000:5000"
+    ports: # Only expose if you need direct access for testing
+      - "5001:5000"
     depends_on:
       - job-title-detector
       - keywords-extractor-openai
       - match-scorer-openai
+      - mongo-db
       # - postgres-db # Add dependency on the database
 
 ########## BACKEND SERVICES ##########
 
   job-title-detector:
     build:
-      context: ./backend/services/job-title-detector
-      dockerfile: ./backend/docker/JTDetector.Dockerfile
+      context: ./backend
+      dockerfile: ./docker/JTDetector.Dockerfile
     restart: on-failure # Restart policy for the job title detector service
     # ports: # Only expose if you need direct access for testing
     #   - "5001:5000"
 
   keywords-extractor-openai:
     build:
-      context: ./backend/services/keywords-extractor-openai
-      dockerfile: ./backend/docker/KWExtractorOpenAI.Dockerfile
+      context: ./backend
+      dockerfile: ./docker/KWExtractorOpenAI.Dockerfile
     restart: on-failure # Restart policy for the job title detector service
     env_file:
       - .env # Load environment variables from .env file
@@ -59,8 +63,8 @@ services:
 
   match-scorer-openai:
     build:
-      context: ./backend/services/match-scorer-openai
-      dockerfile: ./backend/docker/MatchScorerOpenAI.Dockerfile
+      context: ./backend
+      dockerfile: ./docker/MatchScorerOpenAI.Dockerfile
     restart: always
     env_file:
       - .env # Load environment variables from .env file
@@ -94,6 +98,7 @@ services:
   mongo-db:
     image: mongo:latest
     container_name: mongo-db
+    command: mongod --auth --bind_ip_all --port 27017
     env_file:
       - .env # Load environment variables from .env file
     environment:
@@ -106,6 +111,11 @@ services:
       - ./frontend/database/mongodb/initdb/:/docker-entrypoint-initdb.d/ # Run init scripts on startup
       - mongodata:/data/db
       - mongolog:/var/log/mongodb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 ############## DATA PERSISTENCE ##############
 
