@@ -1,4 +1,7 @@
-### Initial Mongo database and authorized user were not created
+# Troubleshooting
+
+## Initial Mongo database and authorized user were not created
+
 The mongo-init.js script isn't being executed, and the most common reason for this is that MongoDB has already been initialized in a previous run, and the data is persisting in a Docker volume. The initialization scripts in /docker-entrypoint-initdb.d/ only run when the database is started for the **very first time** with an empty data directory (/data/db inside the container).
 
 Here's a step-by-step guide to troubleshoot and fix this:
@@ -10,8 +13,10 @@ You need to remove the existing MongoDB data volume so that MongoDB re-initializ
 Stop the MongoDB container:
 
 ```bash
-docker compose -f <docker-compose.yaml> down
+docker compose -f <docker-compose.yaml> down -v
 ```
+
+The -v removes the volumes. If this doesn't work, remove the volumes with the following instructions.
 
 Identify and remove the Docker volume: The docker-compose.yaml might define a volume like this:
 ```yaml
